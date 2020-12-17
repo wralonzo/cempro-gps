@@ -1,4 +1,6 @@
+import 'package:cempro_gps/formularios/politicas.dart';
 import 'package:cempro_gps/home/welcome_page.dart';
+import 'package:cempro_gps/login/login_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -11,14 +13,6 @@ class FormDeAlta extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: new ThemeData(
 
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or press Run > Hot Reload App in IntelliJ). Notice that the counter
-        // didn't reset back to zero; the application is not restarted.
         primarySwatch: Colors.green,
       ),
       home: new MyHomePage(title: 'Formulario de Alta'),
@@ -29,14 +23,6 @@ class FormDeAlta extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
@@ -45,6 +31,57 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  bool rememberMe = false;
+  int contador = 0;
+  void _onRememberMeChanged(bool newValue) => setState(() {
+    rememberMe = newValue;
+
+    if (rememberMe) {
+      // TODO: Here goes your functionality that remembers the user.
+    } else {
+      // TODO: Forget the user
+    }
+  });
+
+  void _showToast(BuildContext context) {
+    final scaffold = Scaffold.of(context);
+    scaffold.showSnackBar(
+      SnackBar(
+        content: const Text('Added to favorite'),
+        action: SnackBarAction(
+            label: 'UNDO', onPressed: scaffold.hideCurrentSnackBar),
+      ),
+    );
+  }
+  List<Company> _companies = Company.getCompanies();
+  List<DropdownMenuItem<Company>> _dropdownMenuItems;
+  Company _selectedCompany;
+
+  @override
+  void initState() {
+    _dropdownMenuItems = buildDropdownMenuItems(_companies);
+    _selectedCompany = _dropdownMenuItems[0].value;
+    super.initState();
+  }
+
+  List<DropdownMenuItem<Company>> buildDropdownMenuItems(List companies) {
+    List<DropdownMenuItem<Company>> items = List();
+    for (Company company in companies) {
+      items.add(
+        DropdownMenuItem(
+          value: company,
+          child: Text(company.name),
+        ),
+      );
+    }
+    return items;
+  }
+  onChangeDropdownItem(Company selectedCompany) {
+    setState(() {
+      _selectedCompany = selectedCompany;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -59,15 +96,15 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: new Text(widget.title),
-        leading: new IconButton(
-          icon: new Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => HomePage()),
-            );
-          },
-        ),
+        // leading: new IconButton(
+        //   icon: new Icon(Icons.arrow_back),
+        //   onPressed: () {
+        //     Navigator.push(
+        //       context,
+        //       MaterialPageRoute(builder: (context) => HomePage()),
+        //     );
+        //   },
+        // ),
       ),
       body: new Column(
         children: <Widget>[
@@ -102,6 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
             leading: const Icon(Icons.label),
             title: const Text('Wilson'),
             subtitle: const Text('Nombre'),
+            trailing: const Icon(Icons.check_circle, color: Colors.green,),
           ),
           new ListTile(
             leading: const Icon(Icons.today),
@@ -113,20 +151,84 @@ class _MyHomePageState extends State<MyHomePage> {
             leading: const Icon(Icons.label),
             title: const Text('45549019'),
             subtitle: const Text('No. Celular'),
+            trailing: const Icon(Icons.check_circle, color: Colors.green,),
           ),
           new ListTile(
             leading: const Icon(Icons.label),
             title: const Text('132141432443'),
             subtitle: const Text('IMEI'),
+            trailing: const Icon(Icons.check_circle, color: Colors.green,),
           ),
-          new ListTile(
-            leading: const Icon(Icons.group),
-            title: const Text('Cambio de celular'),
-            subtitle: const Text('Motivo de Alta'),
-          )
+
+          new DropdownButton(
+            hint: Text("Motivo de Alta"),
+            style: TextStyle(color: Colors.green),
+            icon: Icon(Icons.set_meal_sharp),
+            value: _selectedCompany,
+            items: _dropdownMenuItems,
+            onChanged: onChangeDropdownItem,
+          ),
+
+          new Text('Revisar polititcas!', style: TextStyle(color: Colors.white)),
+          MaterialButton(
+            minWidth: 200.0,
+            height: 50.0,
+            color: Colors.green,
+            child: Text('Politicas de usuario', style: TextStyle(color: Colors.white)),
+            onPressed: (){
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Politicas()),
+              );
+              contador = 1 +1 ;
+            },
+          ),
+          Text("Aceptar Politicas"),
+          Checkbox(
+              value: rememberMe,
+            onChanged: (bool newValue) {
+              setState(() {
+                rememberMe = newValue;
+                // Navigator.pushNamed(context, '/home');
+              });
+            },
+          ),
+          if(rememberMe == true && contador > 0)
+            MaterialButton(
+              minWidth: 200.0,
+              height: 50.0,
+              color: Colors.green,
+              child: Text('Guardar Datos', style: TextStyle(color: Colors.white)),
+              onPressed:  (){
+                contador = 0;
+                rememberMe = false;
+                Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Login() )
+                );
+              },
+            ),
+          if(contador < 1 || rememberMe == false)
+            Text("Lea las politicas para continuar"),
+
         ],
       ),
     );
   }
 }
 
+class Company {
+  int id;
+  String name;
+
+  Company(this.id, this.name);
+
+  static List<Company> getCompanies() {
+    return <Company>[
+      Company(1, 'Motivo de Alta'),
+      Company(2, 'Persona de nuevo ingreso a la APP'),
+      Company(3, 'Cambio de celular'),
+      Company(4, 'Cambio de correlativo'),
+    ];
+  }
+}

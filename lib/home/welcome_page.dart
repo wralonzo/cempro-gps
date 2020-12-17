@@ -1,6 +1,10 @@
 import 'package:cempro_gps/cards/modulos.dart';
 import 'package:cempro_gps/formularios/alta_form_page.dart';
 import 'package:cempro_gps/formularios/politicas.dart';
+import 'package:cempro_gps/login/login_page.dart';
+import 'package:cempro_gps/pages/BusesPage.dart';
+import 'package:cempro_gps/pages/ViaticosPage.dart';
+import 'package:cempro_gps/pages/marcaje_page.dart';
 import 'package:flutter/material.dart';
 
 import '../main.dart';
@@ -32,15 +36,56 @@ class HomePage extends StatelessWidget {final snackBar = SnackBar(
             new Text('Benvenido USUARIO1 !', style: TextStyle(color: Colors.white)),
           new Text('Benvenido USUARIO1 !', style: TextStyle(color: Colors.green)),
             new Text('Benvenido USUARIO1 !', style: TextStyle(color: Colors.white)),
+            // MaterialButton(
+            //   minWidth: 200.0,
+            //   height: 100.0,
+            //   color: Colors.lightGreen,
+            //   child: Text('Formulario de Alta', style: TextStyle(color: Colors.white)),
+            //   onPressed: (){
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(builder: (context) => FormDeAlta()),
+            //     );
+            //   },
+            // ),
+            new Text('Benvenido USUARIO1 !', style: TextStyle(color: Colors.white)),
+            MaterialButton(
+              minWidth: 200.0,
+              height: 100.0,
+              color: Colors.green,
+              child: Text('Marcajes', style: TextStyle(color: Colors.white)),
+              onPressed: (){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => MarcajePage()),
+                  );
+                  },
+            ),
+
+            new Text('Benvenido USUARIO1 !', style: TextStyle(color: Colors.white)),
             MaterialButton(
               minWidth: 200.0,
               height: 100.0,
               color: Colors.lightGreen,
-              child: Text('Formulario de Alta', style: TextStyle(color: Colors.white)),
+              child: Text('Buses', style: TextStyle(color: Colors.white)),
               onPressed: (){
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => FormDeAlta()),
+                  MaterialPageRoute(builder: (context) => BusesPage()),
+                );
+              },
+            ),
+
+            new Text('Benvenido USUARIO1 !', style: TextStyle(color: Colors.white)),
+            MaterialButton(
+              minWidth: 200.0,
+              height: 100.0,
+              color: Colors.lightBlueAccent,
+              child: Text('Viaticos', style: TextStyle(color: Colors.white)),
+              onPressed: (){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ViaticosPage()),
                 );
               },
             ),
@@ -48,14 +93,29 @@ class HomePage extends StatelessWidget {final snackBar = SnackBar(
             MaterialButton(
               minWidth: 200.0,
               height: 100.0,
-              color: Colors.lightBlue,
+              color: Colors.cyan,
               child: Text('Politicas de usuario', style: TextStyle(color: Colors.white)),
               onPressed: (){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Politicas()),
-                  );
-                  },
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Politicas()),
+                );
+              },
+            ),
+            new Text('Benvenido USUARIO1 !', style: TextStyle(color: Colors.white)),
+            MaterialButton(
+              minWidth: 200.0,
+              height: 100.0,
+              color: Colors.orangeAccent,
+              child: Text('Salir', style: TextStyle(color: Colors.white)),
+              onPressed: (){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Login())
+                  // onPressed: ()=> exit(0),
+
+                );
+              },
             ),
       ],
 

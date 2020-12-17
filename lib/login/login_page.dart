@@ -1,3 +1,4 @@
+import 'package:cempro_gps/home/welcome_page.dart';
 import 'package:flutter/material.dart';
 
 import '../main.dart';
@@ -138,7 +139,10 @@ void login(String user, String pass, context){
     // Navigator.pushNamed(context, '/welcome');
     // setState(() => _status = 'loading');
     //   Navigator.of(context).pushReplacementNamed('/cartas');
-      Navigator.pushNamed(context, '/home');
+      Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage() )
+      );
 
 
     // appAuth.login().then((result) {
