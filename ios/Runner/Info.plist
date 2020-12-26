@@ -11,6 +11,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
+	<string>google_maps_codelab</string>
 	<string>cempro_gps</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>

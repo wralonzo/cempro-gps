@@ -1,54 +1,92 @@
-
-
-import 'package:cempro_gps/cards/card_modulos_pages.dart';
-import 'package:cempro_gps/formularios/alta_form_page.dart';
-import 'package:cempro_gps/home/welcome_page.dart';
-import 'package:cempro_gps/pages/BusesPage.dart';
-import 'package:cempro_gps/pages/ViaticosPage.dart';
-import 'package:cempro_gps/services/auth.service.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:cempro_gps/pages/acceso_gps_page.dart';
+import 'package:cempro_gps/pages/loading_page.dart';
 import 'package:flutter/material.dart';
-// import 'location/location.dart';
-import 'login/login.dart';
-import 'login/login_page.dart';
-import 'login/logout_page.dart';
-import 'pages/loading_page.dart';
-import 'pages/acceso_gps_page.dart';
-import 'pages/mapa_page.dart';
-AuthService appAuth = new AuthService();
+import 'dart:async';
 
-void main() async {
-  // Set default home.
-  Widget _defaultHome = new FormDeAlta();
+import 'modelos/login_class.dart';
+import 'package:cempro_gps/login/login_page.dart';
+import 'package:cempro_gps/pages/mapa_home.dart';
+import 'formularios/alta_form_page.dart';
+import 'helpers/sqlLite_helper.dart';
 
-  // Get result of the login function.
-  bool _result = await appAuth.login();
-  if (_result) {
-    _defaultHome = new FormDeAlta();
+
+
+final dbHelper = DatabaseHelper.instance;
+List<Login> logs = [];
+List<Login> logByName = [];
+String ruta = '/form-alta';
+int opc = 0;
+
+void main() {
+  runApp(new MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home:  MyApp(),
+    routes:{
+      'mapa'    : ( _ ) => MapaHome(),
+      'loading' : ( _ ) => LoadingPage(),
+      'acceso_gps': ( _ ) => AccesoGpsPage(),
+    },
+  ));
+}
+
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => new _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    _query(context);
   }
 
-
-    // Run app!
-    runApp(
-        new MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'App',
-          theme: ThemeData(
-            primarySwatch: Colors.green,
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      backgroundColor: Colors.white,
+      body: Container(
+        child: new Column(children: <Widget>[
+          Divider(
+            height: 240.0,
+            color: Colors.white,
           ),
-          home: _defaultHome,
-          routes: <String, WidgetBuilder>{
-            // Set routes for using the Navigator.
-            '/home': (BuildContext context) => new HomePage(),
-            '/login': (BuildContext context) => new Login(),
-            '/cards': ( BuildContext context ) => new CardPage(),
-            '/form-de-alta': ( BuildContext context ) => new FormDeAlta(),
-            '/mapa-gps': ( BuildContext context ) => new MapaPage(),
-            '/buses': ( BuildContext context ) => new BusesPage(),
-            '/viaticos': ( BuildContext context ) => new ViaticosPage(),
-
-
-          },
-        )
+          new Image.asset(
+            'assets/logo_small.png',
+            fit: BoxFit.cover,
+            repeat: ImageRepeat.noRepeat,
+            width: 170.0,
+          ),
+          Divider(
+            height: 105.2,
+            color: Colors.white,
+          ),
+        ]),
+      ),
     );
+  }
+}
+
+void _query(context) async {
+  final allRows = await dbHelper.getVeces(0);
+  logByName.clear();
+  allRows.forEach((row) => logByName.add(Login.fromMap(row)));
+  if(allRows != null && allRows.length > 0 ){
+    new Future.delayed(
+        const Duration(seconds: 1),
+            () =>
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => LoginPage()),
+            ));
+
+  }else{
+    new Future.delayed(
+        const Duration(seconds: 1),
+            () =>
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => FormDeAlta()),
+            ));
+  }
 }
