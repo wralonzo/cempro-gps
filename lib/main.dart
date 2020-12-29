@@ -1,3 +1,4 @@
+import 'package:cempro_gps/home/welcome_page.dart';
 import 'package:cempro_gps/pages/acceso_gps_page.dart';
 import 'package:cempro_gps/pages/loading_page.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ void main() {
       'mapa'    : ( _ ) => MapaHome(),
       'loading' : ( _ ) => LoadingPage(),
       'acceso_gps': ( _ ) => AccesoGpsPage(),
+      'home': ( _ ) => HomePage(null)
     },
   ));
 }

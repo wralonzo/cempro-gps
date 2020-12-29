@@ -17,11 +17,27 @@ int contador = 0;
 bool rememberMe = false;
 String _macAddress = "Unknown";
 String _noPhone = 'Unknown';
-String _noImei = "Unknown";
 final dbHelper = DatabaseHelper.instance;
 Future<AltaForm> _futureAlbum;
 
-Future<AltaForm> createAlbum(String correo, String correlativo, String fecha, String nit, String macAddres) async {
+Future<String> obtenerdatospost(String name, String password) async{
+
+  Map datos = {
+    "name": name,
+    "password": password
+  };
+
+  var respuesta = await http.post(url,body: datos );
+  // print(respuesta.body);
+  Map<String, dynamic> map = jsonDecode(respuesta.body);
+  nombre = map['name'];
+  estado = map['estado'];
+  macaddress = map['macaddress'];
+  print(nombre);
+
+}
+
+Future<AltaForm> createAlbum(String correo, String correlativo, String fecha, String nit, String macAddres, String motivo) async {
   final http.Response response = await http.post(
     'http://18.189.26.76:8000/api/user',
     headers: <String, String>{
@@ -34,8 +50,10 @@ Future<AltaForm> createAlbum(String correo, String correlativo, String fecha, St
       "macaddress": macAddres,
       "nit": nit,
       "politicas": "si",
-      "estado": "activo"
+      "motivoalta": motivo
     }),
+
+
   );
 
   if (response.statusCode == 200) {
@@ -83,6 +101,7 @@ class MyHomePage extends StatefulWidget {
 
 
   final String title;
+  String nombre = '';
 
   @override
   _MyHomePageState createState() => new _MyHomePageState();
@@ -196,28 +215,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
 
-          // new ListTile(
-          //   leading: const Icon(Icons.label),
-          //   title: Text(_noPhone),
-          //   subtitle: Text('No Phone'),
-          //   trailing: const Icon(Icons.check_circle, color: Colors.green,),
-          // ),
-          // const Divider(
-          //   height: 1.0,
-          // ),
-          // new ListTile(
-          //   leading: const Icon(Icons.label),
-          //   title:  Text(_macAddress),
-          //   subtitle: const Text('No. Mac Adddres'),
-          //   trailing: const Icon(Icons.check_circle, color: Colors.green),
-          // ),
-          // new ListTile(
-          //   leading: const Icon(Icons.email),
-          //   title: Text(_noImei),
-          //   subtitle: Text('Email'),
-          //   trailing: const Icon(Icons.check_circle, color: Colors.green,),
-          // ),
-
           new DropdownButton(
             hint: Text("Motivo de Alta"),
             style: TextStyle(color: Colors.green),
@@ -226,6 +223,7 @@ class _MyHomePageState extends State<MyHomePage> {
             items: _dropdownMenuItems,
             onChanged: onChangeDropdownItem,
           ),
+
           new Text('', style: TextStyle(color: Colors.white)),
           if(rememberMe == false || contador < 1)
           ele.wBoton("Politicas de usuario", pAccion: () => { irPoliticas(context) }),
@@ -247,7 +245,8 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 guardarDatos(context);
                 _insertVeces(1, "'"+_noPhone+"'");
-                _futureAlbum = createAlbum(email, correlativo, fecha, nit, _macAddress);
+                nombre = _selectedCompany.name;
+                _futureAlbum = createAlbum(email, correlativo, fecha, nit, _macAddress, nombre);
               },
               textColor: Colors.white,
               padding: const EdgeInsets.all(0.0),
@@ -282,7 +281,7 @@ class Company {
   static List<Company> getCompanies() {
     return <Company>[
       Company(1, 'Motivo de Alta'),
-      Company(2, 'Persona de nuevo ingreso a la APP'),
+      Company(2, 'Nuevo Ingreso a CEMPRO'),
       Company(3, 'Cambio de celular'),
       Company(4, 'Cambio de correlativo'),
     ];
@@ -322,6 +321,8 @@ Future<String> getMacAddress() async {
   return _macAddress;
 }
 //fin imei and macaddress
+
+//funcion para validar si el usuaio ya ha ingresado una vez
 void _insertVeces(log_name, nombre) async {
   // row to insert
   Map<String, dynamic> row = {
@@ -333,15 +334,14 @@ void _insertVeces(log_name, nombre) async {
 print("registros ingresados");
   // _showMessageInScaffold('inserted row id: $id');
 }
+
 //inicio numero de telefono
 void getNumberPhone() async {
   // var data = {};
   var data = await AndroidDeviceInfo().getSystemInfo();
-  var permission =
-  await PermissionHandler().checkPermissionStatus(PermissionGroup.phone);
+  var permission =  await PermissionHandler().checkPermissionStatus(PermissionGroup.phone);
   if (permission == PermissionStatus.denied) {
-    var permissions =
-    await PermissionHandler().requestPermissions([PermissionGroup.phone]);
+    var permissions =  await PermissionHandler().requestPermissions([PermissionGroup.phone]);
     if (permissions[PermissionGroup.phone] == PermissionStatus.granted) {
       data = await AndroidDeviceInfo().getSystemInfo();
       data.addAll(data);
@@ -356,15 +356,3 @@ void _showMessageInScaffold(String message) {
       )
   );
 }
-// void getImei() async{
-//   DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
-//   const MethodChannel _channel = const MethodChannel('device_id');
-//   // var data =
-//   _noImei = await _channel.invokeMethod('getIMEI');
-// }
-// Future<void> getImei() async {
-//   // const MethodChannel _channel = const MethodChannel('device_id');
-//
-//   _noImei  = await DeviceId.getID;
-//   return _noImei ;
-// }

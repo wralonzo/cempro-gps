@@ -1,3 +1,4 @@
+import 'package:cempro_gps/cards/usuario_class.dart';
 import 'package:cempro_gps/pages/loading_page.dart';
 import 'package:cempro_gps/pages/mapa_page.dart';
 import 'package:cempro_gps/formularios/politicas.dart';
@@ -50,7 +51,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: (){
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MapaPage()),
+                  MaterialPageRoute(builder: (context) => MapaPage(widget.usuario)),
                 );
                   },
             ),

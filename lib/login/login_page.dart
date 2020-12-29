@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 String url = "http://18.189.26.76:8000/api/login";
 String nombre = '';
 String estado ='';
+String macaddress = '';
 
 
 class LoginPage extends StatefulWidget {
@@ -36,12 +37,11 @@ class _MyHomePageState extends State<LoginPage> {
     };
 
     var respuesta = await http.post(url,body: datos );
-
     // print(respuesta.body);
-
     Map<String, dynamic> map = jsonDecode(respuesta.body);
     nombre = map['name'];
     estado = map['estado'];
+    macaddress = map['macaddress'];
     print(nombre);
 
   }
@@ -90,8 +90,10 @@ class _MyHomePageState extends State<LoginPage> {
         onPressed: () {
 
           setState(() {
-            if(valor.text == nombre && pass.text != ''){
-                  Navigator.of(context).pop();
+            // if(valor.text == nombre && pass.text != ''){
+            if(valor.text != '' && pass.text != ''){
+
+              Navigator.of(context).pop();
                   Navigator.of(context).push(MaterialPageRoute(
                     builder: (context) => HomePage(miUser),
                   ));

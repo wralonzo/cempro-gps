@@ -1,12 +1,20 @@
+import 'package:cempro_gps/home/welcome_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class MapaPage extends StatefulWidget {
+  final String usuario;
+  MapaPage(this.usuario);
   @override
   State<StatefulWidget> createState() => new _MapaPageState();
 }
 
 class _MapaPageState extends State<MapaPage> {
+  void initState() {
+    super.initState();
+    permisoGPS(context, this.widget.usuario);
+  }
   String _status = 'no-action';
   GoogleMapController mapController;
   MapType _defaultMapType = MapType.normal;
@@ -77,5 +85,56 @@ class _MapaPageState extends State<MapaPage> {
         //]
       //),
     )
+  );
+}
+
+
+void permisoGPS(context, usuario) async{
+  final status = await PermissionHandler().checkPermissionStatus(PermissionGroup.location);
+  if(status == PermissionStatus.denied){
+    PermissionHandler().requestPermissions([PermissionGroup.location]);
+  }
+  // if(status == PermissionStatus.disabled || status == PermissionStatus.unknown || status == PermissionStatus.restricted){
+  //   PermissionHandler().openAppSettings();
+  // }
+  if(status == PermissionStatus.disabled){
+    PermissionHandler().requestPermissions([PermissionGroup.location]);
+  }if(status == PermissionStatus.unknown){
+    PermissionHandler().requestPermissions([PermissionGroup.location]);
+  }if(status == PermissionStatus.restricted){
+    PermissionHandler().requestPermissions([PermissionGroup.location]);
+  }if(status == PermissionStatus.granted){
+    _showDialog(context, 'Bienvenido', 'Marcaje ', usuario);
+  }else{
+    //PermissionHandler().openAppSettings();
+    print(status);
+  }
+}
+
+void _showDialog(context, titulo, contenido, usuario) {
+  // flutter defined function
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      // return object of type Dialog
+      return AlertDialog(
+        title: new Text(titulo),
+        content: new Text(contenido),
+        actions: <Widget>[
+          // usually buttons at the bottom of the dialog
+          new FlatButton(
+            child: new Text("Close"),
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Navigator.of(context).push(MaterialPageRoute(
+              //
+              //   builder: (context) => HomePage(usuario),
+              // ));
+
+            },
+          ),
+        ],
+      );
+    },
   );
 }
