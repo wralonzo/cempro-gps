@@ -3,13 +3,19 @@ import 'dart:convert';
 import 'package:cempro_gps/cards/usuario_class.dart';
 import 'package:cempro_gps/home/welcome_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get_mac/get_mac.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 
 String url = "http://18.189.26.76:8000/api/login";
 String nombre = '';
+String clave = '';
 String estado ='';
-String macaddress = '';
+String _loginMac = '';
+String macAddress = '' ;
+bool checkPass = true;
+bool verpass = false;
 
 
 class LoginPage extends StatefulWidget {
@@ -27,6 +33,8 @@ class _MyHomePageState extends State<LoginPage> {
   String miUser = '';
   void initState() {
     super.initState();
+    getMacAddressLogin();
+
     // login(valor, pass, context);
   }
   Future<String> obtenerdatospost(String name, String password) async{
@@ -41,8 +49,10 @@ class _MyHomePageState extends State<LoginPage> {
     Map<String, dynamic> map = jsonDecode(respuesta.body);
     nombre = map['name'];
     estado = map['estado'];
-    macaddress = map['macaddress'];
+    macAddress = map['macaddress'];
     print(nombre);
+    print(estado);
+    print(macAddress);
 
   }
   TextStyle style = TextStyle(fontFamily: 'Montserrat', fontSize: 20.0);
@@ -68,8 +78,11 @@ class _MyHomePageState extends State<LoginPage> {
       onChanged: (texto) {
         obtenerdatospost(valor.text, pass.text);
         miUser = valor.text;
+        setState(() {
+          verpass = checkPass;
+        });
         },
-      obscureText: true,
+      obscureText: verpass,
       style: style,
       decoration: InputDecoration(
           contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
@@ -88,10 +101,10 @@ class _MyHomePageState extends State<LoginPage> {
         padding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
 
         onPressed: () {
-
+          print(nombre);
           setState(() {
-            // if(valor.text == nombre && pass.text != ''){
-            if(valor.text != '' && pass.text != ''){
+            if(valor.text == nombre && pass.text != '' && _loginMac == macAddress && estado == "activo"){
+            // if(valor.text != '' && pass.text != ''){
 
               Navigator.of(context).pop();
                   Navigator.of(context).push(MaterialPageRoute(
@@ -145,6 +158,18 @@ class _MyHomePageState extends State<LoginPage> {
                     SizedBox(
                       height: 35.0,
                     ),
+                    Icon(Icons.remove_red_eye, size: 40, color: Colors.green),
+                    // icon: Icon(Icons.set_meal_sharp),
+                    Checkbox(
+                      activeColor: Colors.green,
+                      value: checkPass,
+                      onChanged: (bool newValue) {
+                        setState(() {
+                          checkPass = newValue;
+                          verpass = checkPass;
+                        });
+                      },
+                    ),
                     loginButon,
                     SizedBox(
                       height: 15.0,
@@ -184,4 +209,14 @@ void _showDialog(context, titulo, contenido) {
       );
     },
   );
+}
+Future<String> getMacAddressLogin() async {
+  String macAddress;
+  try{
+    macAddress = await GetMac.macAddress;
+  }on PlatformException{
+    macAddress = "Fallo al obtener el nacaddress";
+  }
+  _loginMac = macAddress;
+  return _loginMac;
 }

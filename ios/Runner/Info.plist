@@ -11,7 +11,6 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>google_maps_codelab</string>
 	<string>cempro_gps</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
@@ -44,6 +43,16 @@
 	<false/>
 	<key>io.flutter.embedded_views_preview</key>
     <true/>
+
+    <!-- Permission options for the `location` group -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Need location when in use</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Always and when in use!</string>
+    <key>NSLocationUsageDescription</key>
+    <string>Older devices need location.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Can I have location always?</string>
 
 </dict>
 </plist>

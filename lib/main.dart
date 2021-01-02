@@ -1,12 +1,15 @@
 import 'package:cempro_gps/home/welcome_page.dart';
+import 'package:cempro_gps/map/bloc/maps_bloc.dart';
 import 'package:cempro_gps/pages/acceso_gps_page.dart';
 import 'package:cempro_gps/pages/loading_page.dart';
+import 'package:cempro_gps/pages/mapa_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
 
+import 'map/maps.dart';
 import 'modelos/login_class.dart';
 import 'package:cempro_gps/login/login_page.dart';
-import 'package:cempro_gps/pages/mapa_home.dart';
 import 'formularios/alta_form_page.dart';
 import 'helpers/sqlLite_helper.dart';
 
@@ -21,9 +24,12 @@ int opc = 0;
 void main() {
   runApp(new MaterialApp(
     debugShowCheckedModeBanner: false,
-    home:  MyApp(),
+    home: BlocProvider(
+      create: (BuildContext context) => MapsBloc(),
+      child: Maps(),
+    ),
     routes:{
-      'mapa'    : ( _ ) => MapaHome(),
+      'mapa'    : ( _ ) => MapaPage(null),
       'loading' : ( _ ) => LoadingPage(),
       'acceso_gps': ( _ ) => AccesoGpsPage(),
       'home': ( _ ) => HomePage(null)

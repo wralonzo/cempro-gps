@@ -9,11 +9,11 @@ class Politicas extends StatefulWidget {
   State<StatefulWidget> createState() => new _LoginPageState();
 }
 String textInicial = '\n\nTÉRMINOS Y CONDICIONES DE USO, POLÍTICA DE PRIVACIDAD Y DE USO DE DATOS PERSONALES:\n\n\n';
-String texto =  'Los presentes Términos y Condiciones de Uso de Plataformas Tecnológicas y Política de Privacidad y de Uso de Datos Personales, han sido generados por PROGRESO® para el debido conocimiento, aceptación y estricta observancia por todos los colaboradores de PROGRESO®, que con motivo de su empleo deban acceder a las TECNOLOGÍAS PROGRESO (conforme se definen más adelante).\n\n'
+String texto10 =  'Los presentes Términos y Condiciones de Uso de Plataformas Tecnológicas y Política de Privacidad y de Uso de Datos Personales, han sido generados por PROGRESO® para el debido conocimiento, aceptación y estricta observancia por todos los colaboradores de PROGRESO®, que con motivo de su empleo deban acceder a las TECNOLOGÍAS PROGRESO (conforme se definen más adelante).\n\n'
     + 'Deberá leer y revisar cuidadosamente los términos y condiciones para el uso, acceso y la política de privacidad y de uso de datos personales que usted proporciona e ingresa al sitio web y/o la aplicación de control de ingresos y egresos del personal, así como cualquier otra que se habilite dentro de la aplicación (en adelante las “Plataformas”), denominadas conjuntamente TECNOLOGÍAS PROGRESO.\n\n'
     + 'Para los presentes fines, por “COLABORADOR” deberá entenderse la persona que tiene un vínculo laboral con alguna de las entidades que conforman PROGRESO®, y que por fines de su empleo debe acceder a las Plataformas, y que para el efecto ha aceptado estos términos y condiciones de uso. Una vez concluya la relación laboral del COLABORADOR, la autorización de acceso a dichas plataformas quedará inmediatamente revocada.\n\n'
     + 'Para la efectiva utilización de las TECNOLOGÍAS PROGRESO, PROGRESO® le podrá requerir ciertos datos personales para la utilización de las plataformas tecnológicas o bien verificar la autenticidad del usuario. Para efectos del presente documento se entenderá́ por Datos Personales toda aquella información que el Colaborador provea al momento de contacto y/o ingreso con las TECNOLOGÍAS PROGRESO, y que individualmente permita'
-    + 'su identificación inequívoca. Esto incluye, entre otros, su nombre, datos generales de ley, número de teléfono, documento personal de identificación, fecha de nacimiento, correlativo dentro de la organización, NIT, dirección de correo electrónico y domicilio.\n\n'
+    + 'su identificación inequívoca. Esto incluye, entre otros, su nombre, datos generales de ley, número de teléfono, documento personal de identificación, fecha de nacimiento, correlativo dentro de la organización, dirección de correo electrónico y domicilio.\n\n'
     + 'La aceptación de los presentes términos y condiciones de uso, constituye condición esencial para que el COLABORADOR pueda hacer uso de las Plataformas Tecnológicas de PROGRESO®. Al iniciar el contacto con Progreso al COLABORADOR se le desplegará un mensaje indicándole que se requiere la aceptación de estos Términos y Condiciones de Uso y Política de Privacidad, y si decide continuar con el uso de las Plataformas se entiende que han sido expresamente aceptados y sin reserva por el COLABORADOR. En caso de no aceptarlas, no será posible la instalación de las plataformas.\n\n'
     + 'Mediante las plataformas tecnológicas se persiguen facilitar a los COLABORADORES de PROGRESO® una herramienta de trabajo, mediante la cual podrán realizar las siguientes funcionalidades:'
     + '\n\n a)	Confirmar su ubicación en tiempo real,'
@@ -68,7 +68,7 @@ class _LoginPageState extends State<Politicas> {
                           title: new Text (textInicial, textAlign: TextAlign.justify, style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold )),
                         ),
                         new ListTile(
-                          title: new Text (texto, textAlign: TextAlign.justify),
+                          title: new Text (texto10, textAlign: TextAlign.justify),
                         ),
                         new ListTile(
                           title: new Text (textFinal, textAlign: TextAlign.justify, style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold )),

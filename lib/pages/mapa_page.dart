@@ -1,7 +1,8 @@
-import 'package:cempro_gps/home/welcome_page.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:location/location.dart';
+import 'package:permission_handler/permission_handler.dart' as Permisos;
 
 class MapaPage extends StatefulWidget {
   final String usuario;
@@ -11,24 +12,48 @@ class MapaPage extends StatefulWidget {
 }
 
 class _MapaPageState extends State<MapaPage> {
-  void initState() {
+
+  void initState() async {
     super.initState();
     permisoGPS(context, this.widget.usuario);
+    // _locationData = await location.getLocation();
   }
-  String _status = 'no-action';
-  GoogleMapController mapController;
-  MapType _defaultMapType = MapType.normal;
 
-  final LatLng _center = const LatLng(45.521563, -122.677433);
+
+  String _status = 'no-action';
+  CameraPosition _initialPosition = CameraPosition(
+    target: LatLng(14.588262, -89.5027674),
+      zoom: 75.0
+  );
+  Completer<GoogleMapController> _controller = Completer();
+
 
   void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
+    _controller.complete(controller);
   }
+  MapType _defaultMapType = MapType.normal;
+
   void _changeMapType() {
     setState(() {
       _defaultMapType = _defaultMapType == MapType.normal ? MapType.satellite : MapType.normal;
     });
   }
+  // int _circleIdCounter = 1;
+  // bool _isCircle = false;
+
+  // void _setCircles(LatLng point) {
+  //   final String circleIdVal = 'circle_id_$_circleIdCounter';
+  //   _circleIdCounter++;
+  //   print(
+  //       'Circle | Latitude: ${point.latitude}  Longitude: ${point.longitude}  Radius: $radius');
+  //   _circles.add(Circle(
+  //       circleId: CircleId(circleIdVal),
+  //       center: point,
+  //       radius: radius,
+  //       fillColor: Colors.redAccent.withOpacity(0.5),
+  //       strokeWidth: 3,
+  //       strokeColor: Colors.redAccent));
+  // }
 
 
   @override
@@ -37,79 +62,59 @@ class _MapaPageState extends State<MapaPage> {
       backgroundColor: Colors.green,
       title: new Text('Marcaje'),
     ),
-    body: Center(
-      child:
-      GoogleMap(
-        onMapCreated: _onMapCreated,
-        myLocationEnabled: true,
-        rotateGesturesEnabled: false,
-        scrollGesturesEnabled: false,
-        tiltGesturesEnabled: false,
-        zoomGesturesEnabled: false,
-        mapType: _defaultMapType,
-        mapToolbarEnabled: true,
-        myLocationButtonEnabled: true,
-        initialCameraPosition: CameraPosition(
-          // target: _center,
-          target: LatLng(14.63077, -90.60711),
-          zoom: 8.0,
-        ),
+    body: Stack(
 
-      ),
-      // Column(
-      //     mainAxisAlignment: MainAxisAlignment.start,
-      //   children: <Widget>[
-          // SizedBox(height: 30),
-          // new Text("Bienvenido la hora es: 10:30 AM "),
-          // SizedBox(height: 30),
-          // new RaisedButton(
-          //   child: Text('Marcar inicio'),
-          //   onPressed:() {},
-          // ),
-          // SizedBox(height: 100),
-          // new Text("Aqui va el mapa "),
-          // GoogleMap(
-          //   onMapCreated: _onMapCreated,
-          //   initialCameraPosition: CameraPosition(
-          //     target: _center,
-          //     zoom: 11.0,
-          //   ),
-          // ),
-          // SizedBox(height: 100),
-          // new RaisedButton(
-          //   child: Text('Marcar Salida'),
-          //   onPressed:() {},
-          // ),
-          // SizedBox(height: 100),
-          // SizedBox(height: 100),
-        //]
-      //),
-    )
+        children: <Widget>[
+
+          GoogleMap(
+            mapType: _defaultMapType,
+            myLocationEnabled: true,
+            onMapCreated: _onMapCreated,
+            initialCameraPosition: _initialPosition,
+          ),
+          Container(
+            margin: EdgeInsets.only(top: 80, right: 10),
+            alignment: Alignment.topRight,
+            child: Column(
+                children: <Widget>[
+
+                  FloatingActionButton(
+                      child: Icon(Icons.layers),
+                      elevation: 100,
+                      backgroundColor: Colors.teal[200],
+                      onPressed: () {
+                        _changeMapType();
+                        print('Changing the Map Type');
+                      }),
+                ]),
+          ),
+        ]),
   );
 }
 
-
 void permisoGPS(context, usuario) async{
-  final status = await PermissionHandler().checkPermissionStatus(PermissionGroup.location);
-  if(status == PermissionStatus.denied){
-    PermissionHandler().requestPermissions([PermissionGroup.location]);
+  final status = await Permisos.Permission.location.status;
+
+  if(status == Permisos.PermissionStatus.denied){
+    Permisos.Permission.location.request();
   }
   // if(status == PermissionStatus.disabled || status == PermissionStatus.unknown || status == PermissionStatus.restricted){
   //   PermissionHandler().openAppSettings();
   // }
-  if(status == PermissionStatus.disabled){
-    PermissionHandler().requestPermissions([PermissionGroup.location]);
-  }if(status == PermissionStatus.unknown){
-    PermissionHandler().requestPermissions([PermissionGroup.location]);
-  }if(status == PermissionStatus.restricted){
-    PermissionHandler().requestPermissions([PermissionGroup.location]);
-  }if(status == PermissionStatus.granted){
+  if(status == Permisos.PermissionStatus.undetermined){
+    Permisos.Permission.location.request();
+  }if(status == Permisos.PermissionStatus.permanentlyDenied){
+    Permisos.Permission.location.request();
+  }if(status == Permisos.PermissionStatus.restricted){
+    Permisos.Permission.location.request();
+  }if(status == PermissionStatus.GRANTED){
     _showDialog(context, 'Bienvenido', 'Marcaje ', usuario);
   }else{
     //PermissionHandler().openAppSettings();
     print(status);
   }
 }
+
 
 void _showDialog(context, titulo, contenido, usuario) {
   // flutter defined function

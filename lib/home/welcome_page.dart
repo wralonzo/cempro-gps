@@ -1,5 +1,6 @@
 import 'package:cempro_gps/cards/usuario_class.dart';
 import 'package:cempro_gps/pages/loading_page.dart';
+import 'package:cempro_gps/pages/home.dart';
 import 'package:cempro_gps/pages/mapa_page.dart';
 import 'package:cempro_gps/formularios/politicas.dart';
 import 'package:cempro_gps/login/login_page.dart';
@@ -7,8 +8,6 @@ import 'package:cempro_gps/pages/BusesPage.dart';
 import 'package:cempro_gps/pages/ViaticosPage.dart';
 import 'package:flutter/material.dart';
 
-import '../main.dart';
-// import 'package:cempro_gps/services/auth.service.dart';
 
 class HomePage extends StatefulWidget {
   final String usuario;
@@ -77,10 +76,10 @@ class _HomePageState extends State<HomePage> {
               color: Colors.lightBlueAccent,
               child: Text('Viaticos', style: TextStyle(color: Colors.white)),
               onPressed: (){
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ViaticosPage()),
-                );
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => MapaGoes()),
+                // );
               },
             ),
             new Text('Benvenido USUARIO1 !', style: TextStyle(color: Colors.white)),

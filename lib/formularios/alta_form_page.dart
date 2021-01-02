@@ -1,4 +1,7 @@
-import 'package:android_device_info/android_device_info.dart';
+import 'dart:async';
+import 'dart:math';
+
+// import 'package:android_device_info/android_device_info.dart';
 import 'package:cempro_gps/formularios/politicas.dart';
 import 'package:cempro_gps/helpers/mi_button.dart';
 import 'package:cempro_gps/helpers/sqlLite_helper.dart';
@@ -11,45 +14,66 @@ import 'package:get_mac/get_mac.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'dart:async';
 
 int contador = 0;
 bool rememberMe = false;
 String _macAddress = "Unknown";
-String _noPhone = 'Unknown';
+// String _noPhone = 'Unknown';
 final dbHelper = DatabaseHelper.instance;
 Future<AltaForm> _futureAlbum;
+String urlCheck = "http://18.189.26.76:8000/api/checkin";
+String nombre1 = '';
+String nombre2 = '';
+String lastName1 = '';
+String lastName2 = '';
+String res = 'KO';
+String cadena1 = '' ;
+int MAX = 99;
+int numeroAleatorio = 1;
 
-Future<String> obtenerdatospost(String name, String password) async{
+Future<String> checkIn(String userId, String nit, String birth) async{
 
   Map datos = {
-    "name": name,
-    "password": password
+    "userid": userId,
+    "nit": nit,
+    "birth": birth
   };
 
-  var respuesta = await http.post(url,body: datos );
+  var respuesta = await http.post(urlCheck,body: datos );
   // print(respuesta.body);
   Map<String, dynamic> map = jsonDecode(respuesta.body);
-  nombre = map['name'];
-  estado = map['estado'];
-  macaddress = map['macaddress'];
-  print(nombre);
+  nombre1 = map['name1'];
+  nombre2 = map['name2'];
+  lastName1 = map['last-name1'];
+  lastName2 = map['last-name2'];
+  if(map['res'] == false){
+    res = "KO";
+  }else{
+    res = 'OK';
+  }
+    // res = map['res'];
+
+
+
+  print(res);
 
 }
 
-Future<AltaForm> createAlbum(String correo, String correlativo, String fecha, String nit, String macAddres, String motivo) async {
+Future<AltaForm> createAlbum(String usuarioGenerado, String correo, String correlativo, String fecha, String nit, String macAddres, String motivo) async {
   final http.Response response = await http.post(
     'http://18.189.26.76:8000/api/user',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
     body: jsonEncode(<String, String>{
+      "name": usuarioGenerado,
       "email": correo,
       "fechanacimiento": fecha,
       "correlativo": correlativo,
       "macaddress": macAddres,
       "nit": nit,
       "politicas": "si",
+      "estado": "activo",
       "motivoalta": motivo
     }),
 
@@ -103,17 +127,21 @@ class MyHomePage extends StatefulWidget {
   final String title;
   String nombre = '';
 
+
   @override
   _MyHomePageState createState() => new _MyHomePageState();
+
 }
 final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
 
 class _MyHomePageState extends State<MyHomePage> {
-
-  String correlativo ='';
-  String fecha = '';
-  String nit = '';
+  final TextEditingController correlativo = TextEditingController();
+  final TextEditingController nit = TextEditingController();
+  final TextEditingController fecha = TextEditingController();
+  // String correlativo ='';
+  // String fecha = '';
+  // String nit = '';
   String motivoAlta = '';
   String email = '';
   Elementos ele = new Elementos();
@@ -130,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     getMacAddress();
     // getImei();
-    getNumberPhone();
+    // getNumberPhone();
   }
 
   List<DropdownMenuItem<Company>> buildDropdownMenuItems(List companies) {
@@ -167,9 +195,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
             leading: const Icon(Icons.vpn_key_outlined),
             title: new TextField(
-              onChanged: (texto) {
-                correlativo = texto;
-              },
+              controller: correlativo,
               decoration: new InputDecoration(
                 hintText: "Correlativo",
               ),
@@ -179,9 +205,7 @@ class _MyHomePageState extends State<MyHomePage> {
           new ListTile(
             leading: const Icon(Icons.date_range),
             title: new TextField(
-              onChanged: (texto) {
-                fecha = texto;
-              },
+              controller: fecha,
               decoration: new InputDecoration(
                 hintText: "Fecha",
               ),
@@ -191,12 +215,16 @@ class _MyHomePageState extends State<MyHomePage> {
           new ListTile(
             leading: const Icon(Icons.credit_card_sharp),
             title: new TextField(
-              onChanged: (texto) {
-                nit = texto;
+              controller: nit,
+              onChanged: (text) {
+                  text = nit.text;
+                  checkIn(text, nit.text, fecha.text);
+
               },
               decoration: new InputDecoration(
                 hintText: "NIT",
               ),
+
             ),
           ),
           const Divider(
@@ -208,6 +236,7 @@ class _MyHomePageState extends State<MyHomePage> {
             title: new TextField(
               onChanged: (texto) {
                 email = texto;
+
               },
               decoration: new InputDecoration(
                 hintText: "Correo Electronico",
@@ -231,22 +260,44 @@ class _MyHomePageState extends State<MyHomePage> {
           Text(""),
           Text("Aceptar Politicas"),
           Checkbox(
-              value: rememberMe,
+            value: rememberMe,
             onChanged: (bool newValue) {
               setState(() {
                 contador = 1;
                 rememberMe = newValue;
-                // _futureAlbum = createAlbum("correlativo api", "2020-12-12", "4545646", _macAddress);
+
+                checkIn(correlativo.text, nit.text, fecha.text);
+                // print(correlativo.text);
               });
             },
           ),
           if(rememberMe == true && contador > 0)
             RaisedButton(
-              onPressed: () {
-                guardarDatos(context);
-                _insertVeces(1, "'"+_noPhone+"'");
+              onPressed: ()async {
+                setState(() {
+                  numeroAleatorio = new Random().nextInt(99);
+                });
+                var permisos = await Permission.phone.status;
+                if(permisos == PermissionStatus.granted){
+                checkIn(correlativo.text, nit.text, fecha.text);
+                _insertVeces(1, "Nombre");
+                print(res);
                 nombre = _selectedCompany.name;
-                _futureAlbum = createAlbum(email, correlativo, fecha, nit, _macAddress, nombre);
+                if(res == 'OK'){
+                  print(correlativo.text);
+                  cadena1 = nombre1.substring(0, 1);
+                  cadena1 = cadena1+nombre2.substring(0,2)+lastName1+numeroAleatorio.toString();
+                  print(cadena1);
+                  _futureAlbum = createAlbum(cadena1, email, correlativo.text, fecha.text, nit.text, _macAddress, nombre);
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginPage(),));
+                }else{
+                  _showDialog(context, "Datos incorrectos!!", 'Ingrese Campos correctos');
+                  print(numeroAleatorio);
+                }
+                }else{
+                  var per = Permission.phone.request();
+                }
               },
               textColor: Colors.white,
               padding: const EdgeInsets.all(0.0),
@@ -312,11 +363,14 @@ void guardarDatos(context){
 //mac address
 Future<String> getMacAddress() async {
   String macAddress;
-  try{
-    macAddress = await GetMac.macAddress;
-  }on PlatformException{
-    macAddress = "Fallo al obtener el nacaddress";
-  }
+    var permission =  await Permission.phone.status;
+    print(PermissionStatus);
+    if (permission == PermissionStatus.granted) {
+      macAddress = await GetMac.macAddress;
+    }else{
+      var permission = await Permission.phone.request();
+    }
+
   _macAddress = macAddress;
   return _macAddress;
 }
@@ -336,23 +390,75 @@ print("registros ingresados");
 }
 
 //inicio numero de telefono
-void getNumberPhone() async {
-  // var data = {};
-  var data = await AndroidDeviceInfo().getSystemInfo();
-  var permission =  await PermissionHandler().checkPermissionStatus(PermissionGroup.phone);
-  if (permission == PermissionStatus.denied) {
-    var permissions =  await PermissionHandler().requestPermissions([PermissionGroup.phone]);
-    if (permissions[PermissionGroup.phone] == PermissionStatus.granted) {
-      data = await AndroidDeviceInfo().getSystemInfo();
-      data.addAll(data);
-    }
-  }
-  _noPhone = data['phoneNo'];
-}
+// void getNumberPhone() async {
+//   // var data = {};
+//   var data = await AndroidDeviceInfo().getSystemInfo();
+//   var permission =  await PermissionHandler().checkPermissionStatus(PermissionGroup.phone);
+//   if (permission == PermissionStatus.denied) {
+//     var permissions =  await PermissionHandler().requestPermissions([PermissionGroup.phone]);
+//     if (permissions[PermissionGroup.phone] == PermissionStatus.granted) {
+//       data = await AndroidDeviceInfo().getSystemInfo();
+//       data.addAll(data);
+//     }
+//   }
+//   _noPhone = data['phoneNo'];
+// }
 void _showMessageInScaffold(String message) {
   _scaffoldKey.currentState.showSnackBar(
       SnackBar(
         content: Text(message),
       )
+  );
+}
+
+void validarCheckIn(String cadena, String email, String correlativo1, String fecha1, String nit1, String _macAddress, String usuarioName, BuildContext context)async{
+  print(res);
+  var permission =  await Permission.phone.status;
+  print(permission);
+  if (permission == PermissionStatus.granted) {
+    if (res == 'OK') {
+      _futureAlbum = createAlbum(
+          cadena,
+          email,
+          correlativo1,
+          fecha1,
+          nit1,
+          _macAddress,
+          usuarioName);
+      guardarDatos(context);
+      // _insertVeces(1, "'" + cadena + "'");
+    }
+    if (res == 'KO') {
+      _showDialog(context, "Datos Incorrectos!!", "No se completo el registro");
+    }
+  }else{
+    var permission = await Permission.phone.request();
+
+  }
+  // else{
+  //   _showDialog(context, "Datos Incorrectos!!", "No se completo el registro");
+  // }
+}
+
+void _showDialog(context, titulo, contenido) {
+  // flutter defined function
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      // return object of type Dialog
+      return AlertDialog(
+        title: new Text(titulo),
+        content: new Text(contenido),
+        actions: <Widget>[
+          // usually buttons at the bottom of the dialog
+          new FlatButton(
+            child: new Text("Close"),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
   );
 }
