@@ -50,6 +50,7 @@ class _LoginPageState extends State<Politicas> {
     @override
     Widget build(BuildContext context) => new Scaffold(
       appBar: new AppBar(
+        backgroundColor: Colors.green,
         title: new Text('Politicas'),
       ),
       body: Center(
