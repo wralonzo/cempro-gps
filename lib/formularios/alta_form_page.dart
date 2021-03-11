@@ -66,11 +66,9 @@ class FormDeAlta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: 'Formulario de Alta',
       debugShowCheckedModeBanner: false,
       theme: new ThemeData(
-
-        primarySwatch: Colors.green,
+        primarySwatch: Colors.lightGreen,
       ),
       home: new MyHomePage(title: 'Formulario de Alta'),
     );
@@ -188,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return new Scaffold(
       appBar: new AppBar(
-        title: new Text(widget.title),
+        title: new Center(child: new Text('Formulario De Alta', textAlign: TextAlign.center)),
         shape: ContinuousRectangleBorder(
           borderRadius: BorderRadius.only(
             bottomLeft: Radius.circular(200), bottomRight: Radius.circular(10)
@@ -218,7 +216,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         height: 30,
                         fit:BoxFit.fill
                     ),
-                    Text('  Progreso', style: TextStyle(fontSize: 25, fontFamily:'Montserrat', color: Colors.black,fontWeight: FontWeight.bold ))
+                    Text('  Progreso', style: TextStyle(fontSize: 35, fontFamily:'Montserrat', color: Colors.black,fontWeight: FontWeight.bold ))
                   ],
                 ),
 
@@ -243,7 +241,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   fillColor: Colors.white70,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12.0)),
-                    borderSide: BorderSide(color: Colors.green, width: 2),
+                    borderSide: BorderSide(color: Colors.lightGreen, width: 2),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(10.0)),
@@ -264,14 +262,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
               },
               decoration: InputDecoration(
-                hintText: 'Ingrese su Correlativo',
+                hintText: 'Ingrese su N.I.T',
                 prefixIcon: Icon(Icons.credit_card_sharp),
                 hintStyle: TextStyle(color: Colors.grey),
                 filled: true,
                 fillColor: Colors.white70,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12.0)),
-                  borderSide: BorderSide(color: Colors.green, width: 2),
+                  borderSide: BorderSide(color: Colors.lightGreen, width: 2),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10.0)),
@@ -285,18 +283,30 @@ class _MyHomePageState extends State<MyHomePage> {
           new Center(
             child: Column(
               children: <Widget>[
-                Text('Seleccione su Fecha de Nacimiento', style: TextStyle(color: Colors.black54, fontSize: 13)),
               ],
             ),
 
           ),
-          new Center(
+          Container(
+            margin: EdgeInsets.all(15),
+            padding: EdgeInsets.all(4),
+            alignment: Alignment.center,              decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.lightGreen,
+                style: BorderStyle.solid,
+                width: 2,
+              ),
+              borderRadius: BorderRadius.all(
+                Radius.circular(15.0),
+              )
+          ),
             child: Column(
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    Text("     "),
-                    Text("Día  "),
+                    Text('Fecha', style: TextStyle(color: Colors.black54, fontSize: 13)),
+
+                    Text("Día: "),
                     DropdownButton<String>(
                       value: dropdownValueDias,
                       icon: Icon(Icons.arrow_drop_down),
@@ -320,14 +330,14 @@ class _MyHomePageState extends State<MyHomePage> {
                       }).toList(),
                     ),
 
-                    Text("      Mes  "),
+                    Text(" Mes: "),
                     DropdownButton(
                       style: TextStyle(color: Colors.green, fontSize: 13),
                       value: _selectedMeses,
                       items: _dropdownMenuItemsMeses,
                       onChanged: onChangeDropdownItemMeses,
                     ),
-                    Text("   Año  "),
+                    Text(" Año: "),
                     DropdownButton<String>(
                       value: dropdownValue,
                       icon: Icon(Icons.arrow_drop_down),
@@ -358,54 +368,28 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
           ),
-          SizedBox(height: 30),
-          new Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-
-              children: <Widget>[
-                new Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      DropdownButton(
-                          style: TextStyle(color: Colors.black54, fontSize: 13),
-                          icon: Icon(Icons.list, color: Colors.green, size: 50),
-                          value: _selectedCompany,
-                          items: _dropdownMenuItems,
-                          onChanged: onChangeDropdownItem
-                      ),
-                      new Text(
-                        '    Marcador', style: TextStyle(color: Colors.black54, fontSize: 13),
-                      ),
-                      Checkbox(
-                        value: checkMarcador,
-                        onChanged: (bool newValue) {
-                          setState(() {
-                            checkMarcador = newValue;
-                            getMacAddress();
-                            fecha = dropdownValue+'-'+_selectedMeses.id+'-'+dropdownValueDias;
-                            checkIn(correlativo.text, nit.text, fecha);
-                            // print(correlativo.text);
-                            if(checkMarcador == true){
-                              rolldispositivo = 'Marcador';
-                            }else{
-                              rolldispositivo = 'Marcaje';
-                            }
-                          });
-                        },
-                      ),
-                      ]
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-
-
-                ]
-                ),
-              ],
+          Container(
+            margin: EdgeInsets.all(15),
+            padding: EdgeInsets.all(4),
+            alignment: Alignment.center,              decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.lightGreen,
+                    style: BorderStyle.solid,
+                    width: 2,
+                  ),
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(15.0),
+                  )
+              ),
+              child: DropdownButton(
+                  style: TextStyle(color: Colors.black54, fontSize: 13),
+                  icon: Icon(Icons.list, color: Colors.green, size: 50),
+                  value: _selectedCompany,
+                  items: _dropdownMenuItems,
+                  onChanged: onChangeDropdownItem
+              ),
             ),
-          ),
+
           SizedBox(height: 30),
 
           new Center(
@@ -426,7 +410,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             color: Colors.green,
                             size: 60,
                           )),
-                      Text("Aceptar Políticas Progeso"),
+                      Text("Aceptar Políticas Progreso"),
                     ],
                   ),
 
@@ -458,7 +442,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         fecha = dropdownValue+'-'+_selectedMeses.id+'-'+dropdownValueDias;
                         numeroAleatorio = new Random().nextInt(99);
                       });
-                      var permisos = await Permission.contacts.status;
+                      var permisos = await Permission.phone.status;
                       if(permisos == PermissionStatus.granted){
                         checkIn(correlativo.text, nit.text, fecha);
                         _insertVeces(1, "Nombre");
@@ -479,7 +463,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                         }
                       }else{
-                        var per = Permission.contacts.request();
+                        var per = Permission.phone.request();
                       }
                     },
                     textColor: Colors.white,
@@ -523,12 +507,12 @@ void guardarDatos(context){
 
 Future<String> getMacAddress() async {
   String macAddress;
-    var permission =  await Permission.contacts.status;
+    var permission =  await Permission.phone.status;
     // print(PermissionStatus);
     if (permission == PermissionStatus.granted) {
       macAddress = await GetMac.macAddress;
     }else{
-      var permission = await Permission.contacts.request();
+      var permission = await Permission.phone.request();
     }
 
   _macAddress = macAddress;
@@ -559,7 +543,7 @@ void _showMessageInScaffold(String message) {
 
 void validarCheckIn(String cadena, String email, String correlativo1, String fecha1, String nit1, String _macAddress, String usuarioName,String rol, BuildContext context)async{
   // print(res);
-  var permission =  await Permission.contacts.status;
+  var permission =  await Permission.phone.status;
   print(permission);
   if (permission == PermissionStatus.granted) {
     if (res == 'OK') {
@@ -578,7 +562,7 @@ void validarCheckIn(String cadena, String email, String correlativo1, String fec
       _showDialog(context, "Datos Incorrectos!!", "No se completo el registro");
     }
   }else{
-    var permission = await Permission.contacts.request();
+    var permission = await Permission.phone.request();
 
   }
 }

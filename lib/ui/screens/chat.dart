@@ -3,48 +3,47 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-
-
 class ChatScreen extends StatefulWidget {
-  final String usuario;
-  ChatScreen(this.usuario);
+  final String correlativo;
+  ChatScreen(this.correlativo);
   @override
   HomePageState createState() => new HomePageState();
 }
 
 class HomePageState extends State<ChatScreen> {
-
-  List data;
-  String urlMensajes = "http://18.189.26.76:8000/api/mensajesxsede";
-
+  var data;
   Future<String> getData(String usuario) async {
-    Map datos = {
-      "name": usuario
-    };
+    Map datos = {"correlativo": '34'};
     var response = await http.post(
-        Uri.encodeFull("http://18.189.26.76:8000/api/mensajesxsede"),
-        body: datos
-
-    );
+        Uri.encodeFull("http://18.189.26.76:8000/api/mensajesporusuario"),
+        body: datos);
 
     this.setState(() {
       data = json.decode(response.body);
     });
 
-    print(response);
+    print(data.length);
+    print(data);
 
     return "Success!";
   }
 
   @override
-  void initState(){
-    this.getData(widget.usuario);
+  void initState() {
+    this.getData(widget.correlativo);
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return new Scaffold(
-      appBar: new AppBar(title: new Text("Mensajes"), backgroundColor: Colors.green),
+      appBar: new AppBar(
+        title: new Text("Mensajes"),
+        backgroundColor: Colors.lightGreen,
+        shape: ContinuousRectangleBorder(
+            borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(200),
+                bottomRight: Radius.circular(10))),
+      ),
       body: Container(
         child: ListView.builder(
           itemCount: data == null ? 0 : data.length,
@@ -72,13 +71,13 @@ class HomePageState extends State<ChatScreen> {
                       ),
                     ],
                   ),
-                  subtitle: Text(data[index]["descripcion"]),
+                  subtitle: Text(data['mensajedescripcion']),
                 ),
               ],
             );
           },
         ),
-    ),
+      ),
     );
   }
 }

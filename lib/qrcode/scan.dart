@@ -8,7 +8,6 @@ import 'package:http/http.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 
-
 import 'package:intl/intl.dart';
 
 class ScanScreen extends StatefulWidget {
@@ -28,7 +27,6 @@ class _ScanState extends State<ScanScreen> {
   @override
   initState() {
     super.initState();
-
   }
 
   @override
@@ -36,73 +34,92 @@ class _ScanState extends State<ScanScreen> {
     return Scaffold(
         appBar: new AppBar(
           title: new Text('SCANNER QR MARCAJES'),
-          backgroundColor: Colors.green,
+          backgroundColor: Colors.lightGreen,
+          shape: ContinuousRectangleBorder(
+              borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(200),
+                  bottomRight: Radius.circular(10))),
         ),
         body: new Center(
           child: new Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              if(barcode == 'Sin acceso a la cámara!' || barcode == '' || barcode == 'Por Favor Scanner Código QR')
-                if(contador < 1)
+              if (barcode == 'Sin acceso a la cámara!' ||
+                  barcode == '' ||
+                  barcode == 'Por Favor Scanner Código QR')
+                if (contador < 1)
                   Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 3.0, vertical: 8.0),
-                  child: RaisedButton(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 3.0, vertical: 8.0),
+                    child: RaisedButton(
                       color: Colors.green,
                       textColor: Colors.white,
                       splashColor: Colors.blueGrey,
-                      onPressed: (){
+                      onPressed: () {
                         scan();
-                        },
+                      },
                       child: Container(
                         height: 50,
                         width: 200,
                         // color: Colors.green,
                         padding: const EdgeInsets.all(15.0),
-                        child: Text("Scannear Código QR", style: TextStyle(fontSize: 15), textAlign: TextAlign.center ),
+                        child: Text("Scannear Código QR",
+                            style: TextStyle(fontSize: 15),
+                            textAlign: TextAlign.center),
                       ),
-                    // shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: new BorderRadius.circular(25.0),
-                            side: BorderSide(color: Colors.green)
-                        ),
-                      ),
+                      // shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: new BorderRadius.circular(25.0),
+                          side: BorderSide(color: Colors.green)),
+                    ),
                   ),
-              if(barcode != 'Sin acceso a la cámara!' && barcode != '' && barcode != 'Por Favor Scanner Código QR')
-                if(contador < 2)
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 3.0, vertical: 8.0),
-                  child: RaisedButton(
-                    color: Colors.green,
-                    textColor: Colors.white,
-                    splashColor: Colors.blueGrey,
-                    onPressed: (){
-                      Map valueMap = jsonDecode(barcode);
-                      guardarMarcaje(valueMap['Latitud'].toString(), valueMap['Longitud'].toString(), widget.Correlativo, widget.idUsuario.toString(), "QR", valueMap['nombreqr'], widget.usuario, context );
-                      contador = 1;
+              if (barcode != 'Sin acceso a la cámara!' &&
+                  barcode != '' &&
+                  barcode != 'Por Favor Scanner Código QR')
+                if (contador < 2)
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 3.0, vertical: 8.0),
+                    child: RaisedButton(
+                      color: Colors.green,
+                      textColor: Colors.white,
+                      splashColor: Colors.blueGrey,
+                      onPressed: () {
+                        Map valueMap = jsonDecode(barcode);
+                        guardarMarcaje(
+                            valueMap['Latitud'].toString(),
+                            valueMap['Longitud'].toString(),
+                            widget.Correlativo,
+                            widget.idUsuario.toString(),
+                            "QR",
+                            valueMap['nombreqr'],
+                            widget.usuario,
+                            context);
+                        contador = 1;
                       },
-                    child: Container(
-                      height: 50,
-                      width: 200,
-                      // color: Colors.green,
-                      padding: const EdgeInsets.all(15.0),
-                      child: Text("Hacer Marcación", style: TextStyle(fontSize: 15), textAlign: TextAlign.center ),
-                    ),
-                    // shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: new BorderRadius.circular(25.0),
-                        side: BorderSide(color: Colors.green)
+                      child: Container(
+                        height: 50,
+                        width: 200,
+                        // color: Colors.green,
+                        padding: const EdgeInsets.all(15.0),
+                        child: Text("Hacer Marcación",
+                            style: TextStyle(fontSize: 15),
+                            textAlign: TextAlign.center),
+                      ),
+                      // shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: new BorderRadius.circular(25.0),
+                          side: BorderSide(color: Colors.green)),
                     ),
                   ),
-                ),
-
             ],
           ),
         ));
   }
 
   Future scan() async {
-    var permission =  await Permission.camera.status;
-    if(permission != Permission.camera.isGranted){
+    var permission = await Permission.camera.status;
+    if (permission != Permission.camera.isGranted) {
       var permission = await Permission.camera.request();
     }
     try {
@@ -110,8 +127,7 @@ class _ScanState extends State<ScanScreen> {
       setState(() {
         this.barcode = barcode;
         // mapeoQR = json.decode(barcode);
-      }
-      );
+      });
     } on PlatformException catch (e) {
       if (e.code == BarcodeScanner.CameraAccessDenied) {
         setState(() {
@@ -120,7 +136,7 @@ class _ScanState extends State<ScanScreen> {
       } else {
         setState(() => this.barcode = 'Error Desconocido: $e');
       }
-    } on FormatException{
+    } on FormatException {
       setState(() => this.barcode = 'Por Favor Scanner Código QR');
     } catch (e) {
       setState(() => this.barcode = 'Unknown error: $e');
@@ -128,13 +144,24 @@ class _ScanState extends State<ScanScreen> {
   }
 }
 
-
-Future<String> guardarMarcaje(String latitud, String longitud, String correlativo, String idUsuario, String tipoMarcaje, String nombreqr, usuario, context) async{
+Future<String> guardarMarcaje(
+    String latitud,
+    String longitud,
+    String correlativo,
+    String idUsuario,
+    String tipoMarcaje,
+    String nombreqr,
+    usuario,
+    context) async {
   String urlMarcajes = 'http://18.189.26.76:8000/api/logmarcajesgral';
   DateTime now = DateTime.now();
   var formatter = new DateFormat("yyyy-MM-dd");
   String fecha = formatter.format(now);
-  var reloj = now.hour.toString()+":"+now.minute.toString()+":"+now.second.toString();
+  var reloj = now.hour.toString() +
+      ":" +
+      now.minute.toString() +
+      ":" +
+      now.second.toString();
 
   Map datos = {
     // "id_log_reloj": id_log,
@@ -150,18 +177,19 @@ Future<String> guardarMarcaje(String latitud, String longitud, String correlativ
     "name": usuario
   };
 
-  var respuesta = await post(urlMarcajes, body: datos );
+  var respuesta = await post(urlMarcajes, body: datos);
 
   var map = jsonDecode(respuesta.body);
-  var mensaje    = map['mensaje'];
-  if(respuesta.statusCode == 201){
-    if(mensaje == null) {
+  var mensaje = map['mensaje'];
+  if (respuesta.statusCode == 201) {
+    if (mensaje == null) {
       _showDialog(context, 'Muy Bien!', "Se completo con éxito el marcaje");
     }
-  }else if(respuesta.statusCode == 200){
+  } else if (respuesta.statusCode == 200) {
     _showDialog(context, 'Información del Marcaje', mensaje);
-  }else{
-    _showDialog(context, 'Error!', "No se completo el registro verifique su conexión a internet, puede estar fuera del rango de marcaje");
+  } else {
+    _showDialog(context, 'Error!',
+        "No se completo el registro verifique su conexión a internet, puede estar fuera del rango de marcaje");
   }
 }
 

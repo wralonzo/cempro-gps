@@ -9,7 +9,6 @@ import 'package:http/http.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 
-
 import 'package:intl/intl.dart';
 
 class BarcodePage extends StatefulWidget {
@@ -27,14 +26,15 @@ class _ScanState extends State<BarcodePage> {
   int contador = 0;
   Position positionHere;
 
-  void _getLocationHereCodeBar()async {
-    positionHere = await Geolocator().getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  void _getLocationHereCodeBar() async {
+    positionHere = await Geolocator()
+        .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
   }
+
   @override
   initState() {
     super.initState();
     _getLocationHereCodeBar();
-
   }
 
   @override
@@ -42,67 +42,79 @@ class _ScanState extends State<BarcodePage> {
     return Scaffold(
         appBar: new AppBar(
           title: new Text('BARCODE'),
-          backgroundColor: Colors.green,
+          backgroundColor: Colors.lightGreen,
+          shape: ContinuousRectangleBorder(
+              borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(200),
+                  bottomRight: Radius.circular(10))),
         ),
         body: new Center(
           child: new Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 3.0, vertical: 8.0),
-                    child: RaisedButton(
-                      color: Colors.green,
-                      textColor: Colors.white,
-                      splashColor: Colors.blueGrey,
-                      onPressed: ()async{
-                        var permission =  await Permission.camera.status;
-                        if(permission != Permission.camera.isGranted){
-                          var permission = await Permission.camera.request();
-                        }
-                        try {
-                        String barcode = await BarcodeScanner.scan();
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 3.0, vertical: 8.0),
+                child: RaisedButton(
+                  color: Colors.green,
+                  textColor: Colors.white,
+                  splashColor: Colors.blueGrey,
+                  onPressed: () async {
+                    var permission = await Permission.camera.status;
+                    if (permission != Permission.camera.isGranted) {
+                      var permission = await Permission.camera.request();
+                    }
+                    try {
+                      String barcode = await BarcodeScanner.scan();
+                      setState(() {
+                        this.barcode = barcode;
+                        guardarMarcaje(
+                            positionHere.latitude.toString(),
+                            positionHere.longitude.toString(),
+                            barcode,
+                            widget.idUsuario.toString(),
+                            'CODEBAR',
+                            "",
+                            "",
+                            context);
+                      });
+                    } on PlatformException catch (e) {
+                      if (e.code == BarcodeScanner.CameraAccessDenied) {
                         setState(() {
-                          this.barcode = barcode;
-                          guardarMarcaje(positionHere.latitude.toString(),positionHere.longitude.toString(), barcode, widget.idUsuario.toString(), 'CODEBAR', "", "", context);
+                          this.barcode = 'Sin acceso a la cámara!';
                         });
-                        } on PlatformException catch (e) {
-                          if (e.code == BarcodeScanner.CameraAccessDenied) {
-                          setState(() {
-                            this.barcode = 'Sin acceso a la cámara!';
-                          });
-                        } else {
+                      } else {
                         setState(() => this.barcode = 'Error Desconocido: $e');
-                        }
-                        } on FormatException{
-                          setState(() => this.barcode = 'Por Favor Scanner Código QR');
-                        } catch (e) {
-                          setState(() => this.barcode = 'Unknown error: $e');
-                        }
-                      },
-                      child: Container(
-                        height: 50,
-                        width: 200,
-                        // color: Colors.green,
-                        padding: const EdgeInsets.all(15.0),
-                        child: Text("Scan Código de Barra", style: TextStyle(fontSize: 15), textAlign: TextAlign.center ),
-                      ),
-                      // shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(25.0),
-                          side: BorderSide(color: Colors.green)
-                      ),
-                    ),
+                      }
+                    } on FormatException {
+                      setState(
+                          () => this.barcode = 'Por Favor Scanner Código QR');
+                    } catch (e) {
+                      setState(() => this.barcode = 'Unknown error: $e');
+                    }
+                  },
+                  child: Container(
+                    height: 50,
+                    width: 200,
+                    // color: Colors.green,
+                    padding: const EdgeInsets.all(15.0),
+                    child: Text("Scan Código de Barra",
+                        style: TextStyle(fontSize: 15),
+                        textAlign: TextAlign.center),
                   ),
-
-
+                  // shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: new BorderRadius.circular(25.0),
+                      side: BorderSide(color: Colors.green)),
+                ),
+              ),
             ],
           ),
         ));
   }
 
   Future scan() async {
-    var permission =  await Permission.camera.status;
-    if(permission != Permission.camera.isGranted){
+    var permission = await Permission.camera.status;
+    if (permission != Permission.camera.isGranted) {
       var permission = await Permission.camera.request();
     }
     try {
@@ -110,8 +122,7 @@ class _ScanState extends State<BarcodePage> {
       setState(() {
         this.barcode = barcode;
         // mapeoQR = json.decode(barcode);
-      }
-      );
+      });
     } on PlatformException catch (e) {
       if (e.code == BarcodeScanner.CameraAccessDenied) {
         setState(() {
@@ -120,7 +131,7 @@ class _ScanState extends State<BarcodePage> {
       } else {
         setState(() => this.barcode = 'Error Desconocido: $e');
       }
-    } on FormatException{
+    } on FormatException {
       setState(() => this.barcode = 'Por Favor Scanner Código QR');
     } catch (e) {
       setState(() => this.barcode = 'Unknown error: $e');
@@ -128,13 +139,24 @@ class _ScanState extends State<BarcodePage> {
   }
 }
 
-
-Future<String> guardarMarcaje(String latitud, String longitud, String correlativo, String idUsuario, String tipoMarcaje, String nombreqr, usuario, context) async{
+Future<String> guardarMarcaje(
+    String latitud,
+    String longitud,
+    String correlativo,
+    String idUsuario,
+    String tipoMarcaje,
+    String nombreqr,
+    usuario,
+    context) async {
   String urlMarcajes = 'http://18.189.26.76:8000/api/logmarcajesgral';
   DateTime now = DateTime.now();
   var formatter = new DateFormat("yyyy-MM-dd");
   String fecha = formatter.format(now);
-  var reloj = now.hour.toString()+":"+now.minute.toString()+":"+now.second.toString();
+  var reloj = now.hour.toString() +
+      ":" +
+      now.minute.toString() +
+      ":" +
+      now.second.toString();
 
   Map datos = {
     // "id_log_reloj": id_log,
@@ -150,24 +172,26 @@ Future<String> guardarMarcaje(String latitud, String longitud, String correlativ
     "name": usuario
   };
 
-  var respuesta = await post(urlMarcajes, body: datos );
+  var respuesta = await post(urlMarcajes, body: datos);
   print("hlalallala");
 
   print(respuesta.statusCode);
-  if(respuesta.statusCode == 201){
+  if (respuesta.statusCode == 201) {
     var map = jsonDecode(respuesta.body);
-    var mensaje    = map['mensaje'];
-    if(mensaje == null) {
+    var mensaje = map['mensaje'];
+    if (mensaje == null) {
       _showDialog(context, 'Muy Bien!', "Se completo con éxito el marcaje");
     }
-  }else if(respuesta.statusCode == 200){
+  } else if (respuesta.statusCode == 200) {
     var map = jsonDecode(respuesta.body);
-    var mensaje    = map['mensaje'];
+    var mensaje = map['mensaje'];
     _showDialog(context, 'Información del Marcaje', mensaje);
-  }else if(respuesta.statusCode == 500){
-    _showDialog(context, 'Error!', "Ingrese un Carné Válido para realizar el marcaje");
-  }else{
-    _showDialog(context, 'Error!', "verifique su acceso a internet, puede estar fuera del rango de marcaje");
+  } else if (respuesta.statusCode == 500) {
+    _showDialog(
+        context, 'Error!', "Ingrese un Carné Válido para realizar el marcaje");
+  } else {
+    _showDialog(context, 'Error!',
+        "verifique su acceso a internet, puede estar fuera del rango de marcaje");
   }
 }
 

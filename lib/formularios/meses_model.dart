@@ -11,18 +11,18 @@ class Mes {
 
   static List<Mes> getMeses() {
     return <Mes>[
-      Mes('01', 'Enero'),
-      Mes('02', 'Febrero'),
-      Mes('03', 'Marzo'),
-      Mes('04', 'Abril'),
-      Mes('05', 'Mayo'),
-      Mes('06', 'Junio'),
-      Mes('07', 'Julio'),
-      Mes('08', 'Agosto'),
-      Mes('09', 'Septiembre'),
-      Mes('10', 'Octubre'),
-      Mes('11', 'Noviembre'),
-      Mes('12', 'Diciembre')
+      Mes('01', '01'),
+      Mes('02', '02'),
+      Mes('03', '03'),
+      Mes('04', '04'),
+      Mes('05', '05'),
+      Mes('06', '06'),
+      Mes('07', '07'),
+      Mes('08', '08'),
+      Mes('09', '09'),
+      Mes('10', '10'),
+      Mes('11', '11'),
+      Mes('12', '12')
     ];
   }
 }

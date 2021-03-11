@@ -33,7 +33,13 @@ class GenerateScreenState extends State<GenerateScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Marcaje QR'),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.lightGreen,
+        shape: ContinuousRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(200),
+            bottomRight: Radius.circular(10)
+          )
+         ),
       ),
       body: _miWidgetQR(),
     );
