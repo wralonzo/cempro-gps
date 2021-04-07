@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:barcode_scan/barcode_scan.dart';
+import 'package:cempro_gps/constantes/url_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
@@ -41,8 +42,10 @@ class _ScanState extends State<BarcodePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: new AppBar(
-          title: new Text('BARCODE'),
-          backgroundColor: Colors.lightGreen,
+          centerTitle: true,
+          title: new Text('Marcaje Carné', style: TextStyle(
+        fontFamily:'Gill', fontSize: 25, color: Color.fromRGBO(14, 123, 55, 99.0))),
+          backgroundColor: Color.fromRGBO(193, 216, 47, 0.8),
           shape: ContinuousRectangleBorder(
               borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(200),
@@ -98,7 +101,7 @@ class _ScanState extends State<BarcodePage> {
                     // color: Colors.green,
                     padding: const EdgeInsets.all(15.0),
                     child: Text("Scan Código de Barra",
-                        style: TextStyle(fontSize: 15),
+                        style: TextStyle(fontSize: 15, fontFamily: 'Gill'),
                         textAlign: TextAlign.center),
                   ),
                   // shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)),
@@ -148,7 +151,6 @@ Future<String> guardarMarcaje(
     String nombreqr,
     usuario,
     context) async {
-  String urlMarcajes = 'http://18.189.26.76:8000/api/logmarcajesgral';
   DateTime now = DateTime.now();
   var formatter = new DateFormat("yyyy-MM-dd");
   String fecha = formatter.format(now);
@@ -172,7 +174,12 @@ Future<String> guardarMarcaje(
     "name": usuario
   };
 
-  var respuesta = await post(urlMarcajes, body: datos);
+  var respuesta = await post(URL_BASE + 'logmarcajesgral',
+      headers: {
+        "Accept": "application/json",
+        "APP-KEY": APP_KEY,
+        "APP-SECRET": APP_SECRET
+      }, body: datos);
   print("hlalallala");
 
   print(respuesta.statusCode);
@@ -202,12 +209,12 @@ void _showDialog(context, titulo, contenido) {
     builder: (BuildContext context) {
       // return object of type Dialog
       return AlertDialog(
-        title: new Text(titulo),
-        content: new Text(contenido),
+        title: new Text(titulo, style: TextStyle(fontFamily: 'Gill')),
+        content: new Text(contenido, style: TextStyle(fontFamily: 'Gill')),
         actions: <Widget>[
           // usually buttons at the bottom of the dialog
           new FlatButton(
-            child: new Text("Close"),
+            child: new Text("Close", style: TextStyle(fontFamily: 'Gill')),
             onPressed: () {
               Navigator.of(context).pop();
             },

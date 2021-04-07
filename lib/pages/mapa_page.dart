@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cempro_gps/constantes/url_helper.dart';
 import 'package:cempro_gps/qrcode/scan.dart';
 import 'package:flutter/cupertino.dart';
 import 'dart:async';
@@ -84,7 +85,7 @@ class _MapState extends State<MapaPage> {
           markerId: MarkerId(_lastMapPosition.toString()),
           position: _lastMapPosition,
           infoWindow:
-              InfoWindow(title: "Macaje", snippet: "Cempro S.A", onTap: () {}),
+              InfoWindow(title: "Macaje", snippet: "Progreso S.A", onTap: () {}),
           onTap: () {},
           icon: BitmapDescriptor.defaultMarker));
     });
@@ -105,32 +106,18 @@ class _MapState extends State<MapaPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: new AppBar(
-        backgroundColor: Colors.lightGreen,
+        backgroundColor: Color.fromRGBO(193, 216, 47, 50),
         shape: ContinuousRectangleBorder(
             borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(200),
                 bottomRight: Radius.circular(10))),
-        title: new Text('Marcajes Cempro'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(
-              Icons.qr_code,
-              color: Colors.white,
-              size: 35,
-            ),
-            onPressed: () {
-              // do
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ScanScreen(
-                        widget.usuario, widget.idUsuario, widget.Correlativo)
-                    // HomePageB()
-                    ),
-              );
-            },
-          )
-        ],
+        title: new Center(
+            child: Text('Marcajes Progreso',
+                style: TextStyle(
+                    fontFamily: 'Gill',
+                    fontSize: 25,
+                    color: Color.fromRGBO(14, 123, 55, 0.8)))),
+
       ),
       body: _initialPosition == null
           ? Container(
@@ -174,7 +161,9 @@ class _MapState extends State<MapaPage> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: <Widget>[
                       // SizedBox(height: ),
-
+                      SizedBox(
+                          height: 5
+                      ),
                       TimerBuilder.periodic(Duration(seconds: 1),
                           builder: (context) {
                         // print("${getSystemTime()}");
@@ -183,6 +172,7 @@ class _MapState extends State<MapaPage> {
                           style: TextStyle(
                               color: Colors.blueAccent,
                               fontSize: 30,
+                              fontFamily: 'Gill',
                               fontWeight: FontWeight.w700),
                         );
                       }),
@@ -216,13 +206,12 @@ class _MapState extends State<MapaPage> {
                         child: Container(
                           height: 50,
                           width: 200,
-                          // color: Colors.green,
                           padding: const EdgeInsets.all(15.0),
                           child: Text("Marcar Entrada",
-                              style: TextStyle(fontSize: 15),
+                              style: TextStyle(fontSize: 15, fontFamily: 'Gill'),
                               textAlign: TextAlign.center),
                         ),
-                        color: Colors.green,
+                        color: Color.fromRGBO(66, 172, 53, 50),
                         // shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)),
                         shape: RoundedRectangleBorder(
                             borderRadius: new BorderRadius.circular(25.0),
@@ -263,7 +252,7 @@ class _MapState extends State<MapaPage> {
                         // color: Colors.green,
                         padding: const EdgeInsets.all(15.0),
                         child: Text("Marcar Salida",
-                            style: TextStyle(fontSize: 15),
+                            style: TextStyle(fontSize: 15, fontFamily: 'Gill' ),
                             textAlign: TextAlign.center),
                       ),
                       color: Colors.red,
@@ -287,12 +276,12 @@ void _showDialog(context, titulo, contenido) {
     builder: (BuildContext context) {
       // return object of type Dialog
       return AlertDialog(
-        title: new Text(titulo),
-        content: new Text(contenido),
+        title: new Text(titulo, style: TextStyle(fontFamily: 'Gill')),
+        content: new Text(contenido, style: TextStyle(fontFamily: 'Gill')),
         actions: <Widget>[
           // usually buttons at the bottom of the dialog
           new FlatButton(
-            child: new Text("Close"),
+            child: new Text("Close", style: TextStyle(fontFamily: 'Gill')),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -311,7 +300,7 @@ Future<String> guardarMarcaje(
     String tipoMarcaje,
     usuario,
     context) async {
-  String urlMarcajes = 'http://18.189.26.76:8000/api/logmarcajesgral';
+  // String urlMarcajes = 'http://18.189.26.76:8000/api/logmarcajesgral';
   DateTime now = DateTime.now();
   var formatter = new DateFormat("yyyy-MM-dd");
   String fecha = formatter.format(now);
@@ -334,7 +323,13 @@ Future<String> guardarMarcaje(
     "name": usuario
   };
 
-  var respuesta = await httpMarcajes.post(urlMarcajes, body: datos);
+  var respuesta = await httpMarcajes.post(URL_BASE + 'logmarcajesgral',
+      headers: {
+        "Accept": "application/json",
+        "APP-KEY": APP_KEY,
+        "APP-SECRET": APP_SECRET
+      },
+      body: datos);
   var map = jsonDecode(respuesta.body);
   var mensaje = map['mensaje'];
   // print(mensaje);
@@ -350,3 +345,7 @@ Future<String> guardarMarcaje(
         "No se completo el registro verifique su conexión a internet, puede estar fuera del rango de marcaje");
   }
 }
+
+/*
+*
+* */

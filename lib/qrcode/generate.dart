@@ -5,7 +5,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 
 class GenerateScreen extends StatefulWidget {
-
   @override
   State<StatefulWidget> createState() => GenerateScreenState();
 }
@@ -32,8 +31,11 @@ class GenerateScreenState extends State<GenerateScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Marcaje QR'),
-        backgroundColor: Colors.lightGreen,
+        centerTitle: true,
+        title: Text('Marcaje QR', style: TextStyle(
+        // fontWeight: FontWeight.bold,
+        fontFamily:'Gill', fontSize: 25, color: Color.fromRGBO(14, 123, 55, 99.0))),
+        backgroundColor: Color.fromRGBO(193, 216, 47, 0.8),
         shape: ContinuousRectangleBorder(
           borderRadius: BorderRadius.only(
             bottomLeft: Radius.circular(200),
@@ -57,10 +59,25 @@ class GenerateScreenState extends State<GenerateScreen> {
               Expanded(
                 child:  TextField(
                   controller: _textController,
-                  decoration:  InputDecoration(
-                    hintText: "Ingrese Tipo de Marcaje",
-                    errorText: _inputErrorText,
+
+                  decoration: InputDecoration(
+                  hoverColor: Colors.green,
+                  // prefixIcon: Icon(Icons.lock, color: Color.fromRGBO(0, 99, 38, 50), size: 30),
+                  labelText: 'Mensaje de marcación',
+                  labelStyle: TextStyle(color: Color.fromRGBO(0, 99, 38, 50)),
+                  hintStyle: TextStyle(color: Color.fromRGBO(84, 87, 89, 50), fontSize: 15, fontFamily: 'Gill'),
+                  fillColor: Color.fromRGBO(84, 87, 89, 50),
+                  focusedBorder: UnderlineInputBorder(
+                  borderSide:
+                  BorderSide(color: Color.fromRGBO(0, 99, 38, 50)),
                   ),
+                  helperStyle: TextStyle(
+                  color: Color.fromRGBO(0, 99, 38, 50), fontSize: 13),
+                  suffixStyle:
+                  const TextStyle(color: Color.fromRGBO(0, 99, 38, 50))),
+                  keyboardType: TextInputType.text,
+                  cursorColor: Color.fromRGBO(84, 87, 89, 50),
+                  style: TextStyle(fontFamily: 'Gill', fontSize: 25),
                 ),
 
               ),RaisedButton(
@@ -71,7 +88,7 @@ class GenerateScreenState extends State<GenerateScreen> {
                     width: 100,
                     // color: Colors.green,
                     padding: const EdgeInsets.all(15.0),
-                    child: Text("Generar", style: TextStyle(fontSize: 15), textAlign: TextAlign.center ),
+                    child: Text("Generar",  style: TextStyle(fontSize: 18, fontFamily: 'Gill', color: Colors.white), textAlign: TextAlign.center ),
                   ),
                   shape: RoundedRectangleBorder(
                       borderRadius: new BorderRadius.circular(25.0),
@@ -128,12 +145,12 @@ void _showDialog(context, titulo, contenido) {
     builder: (BuildContext context) {
       // return object of type Dialog
       return AlertDialog(
-        title: new Text(titulo),
-        content: new Text(contenido),
+        title: new Text(titulo, style: TextStyle(fontFamily: 'Gill')),
+        content: new Text(contenido, style: TextStyle(fontFamily: 'Gill')),
         actions: <Widget>[
           // usually buttons at the bottom of the dialog
           new FlatButton(
-            child: new Text("Close"),
+            child: new Text("Close", style: TextStyle(fontFamily: 'Gill')),
             onPressed: () {
               Navigator.of(context).pop();
             },

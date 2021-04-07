@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:cempro_gps/clave/clave_page.dart';
+import 'package:cempro_gps/constantes/url_helper.dart';
 import 'package:cempro_gps/home/welcome_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,21 +10,10 @@ import 'package:flutter/services.dart';
 import 'package:get_mac/get_mac.dart';
 import 'dart:async';
 import 'package:http/http.dart' as httpLogin;
+import 'package:rounded_loading_button/rounded_loading_button.dart';
 
-String urlLogin = "http://18.189.26.76:8000/api/login";
-String nombre = '';
-String clave = '';
-String estado = '';
-String _loginMac = '';
-String macAddress = '';
-String correlativo = '';
 bool checkPass;
 bool verpass;
-var respuesta;
-String correlativoLogin = '';
-int idUsuarioLogin = 0;
-String rol = '';
-String nombreUsuario = '';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key key, this.title}) : super(key: key);
@@ -30,64 +22,198 @@ class LoginPage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<LoginPage> {
-  final TextEditingController valor = TextEditingController();
-  final TextEditingController pass = TextEditingController();
-  String miUser = '';
+  final RoundedLoadingButtonController _btnController = new RoundedLoadingButtonController();
+
+  final TextEditingController _correlativo = TextEditingController();
+  final TextEditingController _clave = TextEditingController();
+
+  String _getMacAddress = '';
   void initState() {
     super.initState();
-
     getMacAddressLogin();
-
     checkPass = true;
     verpass = true;
-    // obtenerdatospost(valor.text, pass.text);
+    SystemChrome.setPreferredOrientations(
+        [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+    BackButtonInterceptor.add(myInterceptor);
+  }
+  @override
+  void dispose() {
+    BackButtonInterceptor.remove(myInterceptor);
+    super.dispose();
   }
 
-  DateTime backbuttonpressedTime;
-  Future<bool> onWillPop() async {
-    DateTime currentTime = DateTime.now();
-    //bifbackbuttonhasnotbeenpreedOrToasthasbeenclosed
-    //Statement 1 Or statement2
-    bool backButton = backbuttonpressedTime == null ||
-        currentTime.difference(backbuttonpressedTime) > Duration(seconds: 4);
-
-    if (backButton) {
-      backbuttonpressedTime = currentTime;
-      _showDialog(context, "SALIR", "Desea Cerrar la Aplicación");
-      return false;
+  Future<String> getMacAddressLogin() async {
+    try {
+      _getMacAddress = await GetMac.macAddress;
+    } on PlatformException {
+      _getMacAddress = "Fallo al obtener el nacaddress";
     }
+    return _getMacAddress;
+  }
+  bool myInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
+    _salirAPP(context);
     return true;
   }
+  Future obtenerPermiso(String correlativo, String permiso) async {
+    var miMapPermisos;
+    Map datosPermisso = {"correlativo": correlativo};
 
-  Future<String> obtenerdatospost(String name, String password) async {
-    Map datos = {"correlativo": name, "password": password};
+    var respuestaPermisos = await httpLogin.post(URL_BASE + 'accesosusuario',
+        headers: {
+          "Accept": "application/json",
+          "APP-KEY": APP_KEY,
+          "APP-SECRET": APP_SECRET
+        },
+        body: datosPermisso);
 
-    respuesta = await httpLogin.post(urlLogin, body: datos);
-    // print(respuesta.body);
-    var map = jsonDecode(respuesta.body);
-    idUsuarioLogin = map[0]['id'];
-    nombre = map[0]['name'];
-    correlativoLogin = map[0]['correlativo'];
-    macAddress = map[0]['macaddress'];
-    estado = map[0]['estado'];
-    rol = map[0]['rolldispositivio'];
-    nombreUsuario = map[0]['name2'] + ' ' + map[0]['last-name1'];
+    if(respuestaPermisos.statusCode == 200){
+      var mapPermisos = jsonDecode(respuestaPermisos.body);
+
+      for (int i = 0; i < mapPermisos.length; i++) {
+        if(mapPermisos[i]['nombre_acceso'] == permiso){
+          miMapPermisos = {
+              'estado': mapPermisos[i]['estado'],
+              'link': mapPermisos[i]['link'],
+            };
+          // user = mapPermisos[i]['estado'];
+          break;
+        }
+      }
+      return jsonEncode(miMapPermisos);
+    }
   }
 
-  TextStyle style = TextStyle(fontFamily: 'Montserrat');
+  Future<String> obtenerdatospost(String correlativo, String password, String macAddress) async {
+    Map datos = {"correlativo": correlativo, "password": password};
+
+    var respuesta = await httpLogin.post(URL_BASE + 'login',
+        headers: {
+          "Accept": "application/json",
+          "APP-KEY": APP_KEY,
+          "APP-SECRET": APP_SECRET
+        },
+        body: datos);
+
+    if (respuesta.statusCode == 200) {
+      var map = jsonDecode(respuesta.body);
+
+      if (map.length == 2) {
+        _btnController.error();
+        _showDialog(context, 'Atención! ', map['mensaje']);
+      } else {
+        //definir los permisos;
+        Timer(Duration(seconds: 3), () {
+          _btnController.success();
+        });
+        var _GPS = jsonDecode(await obtenerPermiso(correlativo, 'Marcaje GPS'));
+        var _MARCAJEQR = jsonDecode(await obtenerPermiso(correlativo, 'Marcaje QR'));
+        var _MARCAJECARNE = jsonDecode(await obtenerPermiso(correlativo, 'Marcaje Carné'));
+        var _MENSAJES = jsonDecode(await obtenerPermiso(correlativo, 'Mensajes'));
+        var _CAMBIARCLAVE = jsonDecode(await obtenerPermiso(correlativo, 'Cambiar clave'));
+        var _CERRARSESION = jsonDecode(await obtenerPermiso(correlativo, 'Cerrar sesión'));
+        var _ODH = jsonDecode(await obtenerPermiso(correlativo, 'Servicios ODH'));
+        var _EVENTOQR = jsonDecode(await obtenerPermiso(correlativo, 'Creación evento QR'));
+        var _SAP = jsonDecode(await obtenerPermiso(correlativo, 'SAP Concur'));
+        var _NEXO = jsonDecode(await obtenerPermiso(correlativo, 'Nexo'));
+        String permisoGPS = _GPS['estado'];
+        String permisoQR = _MARCAJEQR['estado'];
+        String permisoCARNE = _MARCAJECARNE['estado'];
+        String permisoMSJ = _MENSAJES['estado'];
+        String permisoCLAVE = _CAMBIARCLAVE['estado'];
+        // String permisoSES = _CERRARSESION['estado'];
+        String permisoODH = _ODH['estado'];
+        String permisoEQR = _EVENTOQR['estado'];
+        String permisoSAP = _SAP['estado'];
+        String permisoNEXO = _NEXO['estado'];
+
+        String permisoODHURL = _ODH['link'];
+        String permisoNEXOURL = _NEXO['link'];
+        String permisoSAPUL = _SAP['link'];
+        //
+        if (correlativo == map[0]['correlativo'] &&
+            password != '' &&
+            map[0]['rolldispositivio'] == 'app' &&
+            macAddress == map[0]['macaddress'] &&
+            map[0]['estado'] == "Activo") {
+          Navigator.of(context).pop();
+          Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => HomePage(
+                        map[0]['name2'] +
+                            ' ' +
+                            map[0]['last-name1'], // Eje: Pedro blanco
+                        map[0]['id'],
+                        map[0]['correlativo'], //Eje: 2324
+                        map[0]['rolldispositivio'], //eje: app o web
+                        map[0]['name'],
+                        permisoGPS,
+                        permisoQR,
+                        permisoCARNE,
+                        permisoMSJ,
+                        permisoCLAVE,
+                        // permisoSES,
+                        permisoODH,
+                        permisoEQR,
+                        permisoSAP,
+                        permisoNEXO,
+
+                        permisoODHURL,
+                        permisoNEXOURL,
+                        permisoSAPUL,
+                        )),
+          );
+        } //fin if de validar usuario
+        else {
+          _btnController.error();
+          _showDialog(context, 'Atención! ',
+              'Tu rol no existe contacta servicio al cliente.');
+        }
+      }
+    } else {
+      _btnController.error();
+      _showDialog(context, 'Error! ', 'Revise su Disponibilidad de Internet');
+    }
+  }
+
+  void _showDialog(context, titulo, contenido) {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text(titulo, style: TextStyle(fontFamily: 'Gill')),
+          content: new Text(contenido, style: TextStyle(fontFamily: 'Gill')),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+            new FlatButton(
+              child: new Text("Close", style: TextStyle(fontFamily: 'Gill')),
+              onPressed: () {
+                _btnController.reset();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  TextStyle style = TextStyle(fontFamily: 'Gill');
 
   @override
   Widget build(BuildContext context) {
     final emailField = TextField(
       autofocus: true,
-      controller: valor,
+      controller: _correlativo,
       textAlign: TextAlign.center,
       obscureText: false,
-      keyboardType: TextInputType.emailAddress,
+      keyboardType: TextInputType.phone,
       textInputAction: TextInputAction.next,
       // controller: controller,
-      style: TextStyle(
-          fontFamily: 'Montserrat', color: Colors.black, fontSize: 25),
+      style: TextStyle(fontFamily: 'Grill', color: Colors.black, fontSize: 25),
       decoration: InputDecoration(
           filled: true,
           fillColor: Colors.white,
@@ -102,14 +228,9 @@ class _MyHomePageState extends State<LoginPage> {
             borderSide: BorderSide(color: Colors.white),
             borderRadius: BorderRadius.circular(25.7),
           ),
-          // contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
-          // hintText: "Clave",
           hintStyle: TextStyle(
-              fontFamily: 'Montserrat', color: Colors.black, fontSize: 25),
+              fontFamily: 'Grill', color: Colors.black54, fontSize: 25),
           focusColor: Colors.white,
-          // focusedBorder: UnderlineInputBorder(
-          //   borderSide: BorderSide(color: Colors.white),
-          // ),
           border:
               OutlineInputBorder(borderRadius: BorderRadius.circular(32.0))),
     );
@@ -118,20 +239,15 @@ class _MyHomePageState extends State<LoginPage> {
       autofocus: true,
       textAlign: TextAlign.center,
       textInputAction: TextInputAction.next,
-      controller: pass,
+      controller: _clave,
       onChanged: (texto) {
-        miUser = valor.text;
         setState(() {
           verpass = checkPass;
-          obtenerdatospost(valor.text, pass.text);
-          print(_loginMac);
-          print('mac');
-          print(macAddress);
+          getMacAddressLogin();
         });
       },
       obscureText: verpass,
-      style: TextStyle(
-          fontFamily: 'Montserrat', color: Colors.black, fontSize: 25),
+      style: TextStyle(fontFamily: 'Grill', color: Colors.black, fontSize: 25),
       decoration: InputDecoration(
           filled: true,
           fillColor: Colors.white,
@@ -146,56 +262,12 @@ class _MyHomePageState extends State<LoginPage> {
             borderSide: BorderSide(color: Colors.white),
             borderRadius: BorderRadius.circular(25.7),
           ),
-          // contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
-          // hintText: "Clave",
           hintStyle: TextStyle(
-              fontFamily: 'Montserrat', color: Colors.black, fontSize: 25),
+              fontFamily: 'Grill', color: Colors.black54, fontSize: 25),
           focusColor: Colors.white,
-          // focusedBorder: UnderlineInputBorder(
-          //   borderSide: BorderSide(color: Colors.white),
-          // ),
           border:
               OutlineInputBorder(borderRadius: BorderRadius.circular(32.0))),
     );
-
-    final loginButon = Material(
-      borderRadius: BorderRadius.circular(30.0),
-      color: Color.fromARGB(230, 68, 173, 52),
-      child: MaterialButton(
-        minWidth: 400.0,
-        height: 60,
-        // minWidth: MediaQuery.of(context).size.width,
-        // padding: EdgeInsets.fromLTRB(0.0, 15.0, 20.0, 15.0),
-        onPressed: () {
-          setState(() {
-            // obtenerdatospost(valor.text, pass.text);
-            if (valor.text == correlativoLogin &&
-                pass.text != '' &&
-                _loginMac == macAddress &&
-                estado == "activo") {
-              // if(valor.text != '' && pass.text != ''){
-              Navigator.of(context).pop();
-              Navigator.of(context).push(MaterialPageRoute(
-                // builder: (context) => HomePage('willian', 3212, '3213', 'admin', 'Willian'),
-              ));
-            } else {
-              _showDialog(context, "Error !", "Credenciales Incorrectas");
-              // obtenerdatospost(valor.text, pass.text);
-            }
-            valor.text = '';
-            pass.text = '';
-          });
-        },
-        child: Text("Ingresar",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                color: Colors.white,
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Montserrat')),
-      ),
-    );
-
     return Scaffold(
         body: SingleChildScrollView(
       child: Center(
@@ -203,7 +275,9 @@ class _MyHomePageState extends State<LoginPage> {
           decoration: BoxDecoration(
             color: Colors.grey,
             image: DecorationImage(
-                image: AssetImage("assets/bosque.jpg"), fit: BoxFit.cover),
+              image: AssetImage("assets/bosque.png"),
+              fit: BoxFit.cover,
+            ),
           ),
           child: Padding(
             padding: const EdgeInsets.all(36.0),
@@ -212,32 +286,14 @@ class _MyHomePageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 SizedBox(
-                  height: 25.0,
+                  height: 250.0,
                 ),
-                SizedBox(
-                  height: 75.0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        "assets/progreso.png",
-                        fit: BoxFit.contain,
-                      ),
-                      Text(' Progeso',
-                          style: TextStyle(color: Colors.white, fontSize: 50)),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 60.0),
-                Text('BIENVENIDO',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 50, color: Colors.white)),
                 SizedBox(height: 50.0),
-                emailField,
+                Container(child: emailField),
                 SizedBox(height: 40.0),
                 passwordField,
                 SizedBox(
-                  height: 20.0,
+                  height: 30.0,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -248,15 +304,14 @@ class _MyHomePageState extends State<LoginPage> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Montserrat')),
+                              fontSize: 20,
+                              fontFamily: 'Grill')),
                       onTap: () {
+                        _btnController.reset();
                         // obtenerPermisos(valor.text);
                         setState(() {
                           if (verpass == true) {
                             verpass = false;
-                            print(valor.text);
                           } else {
                             verpass = true;
                           }
@@ -284,8 +339,6 @@ class _MyHomePageState extends State<LoginPage> {
                         activeColor: Colors.green,
                         value: checkPass,
                         onChanged: (bool newValue) {
-                          obtenerdatospost(valor.text, pass.text);
-
                           setState(() {
                             checkPass = newValue;
                             verpass = checkPass;
@@ -296,9 +349,30 @@ class _MyHomePageState extends State<LoginPage> {
                   ],
                 ),
                 SizedBox(
-                  height: 70.0,
+                  height: 60.0,
                 ),
-                loginButon,
+                RoundedLoadingButton(
+                  // width: 75.50,
+                  height: 60,
+                  borderRadius: 75.5,
+                  color: Colors.green,
+                  controller: _btnController,
+                  successColor: Colors.green,
+                  onPressed: () {
+                    if (_correlativo.text != '' && _clave.text != '') {
+                      obtenerdatospost(_correlativo.text, _clave.text, _getMacAddress);
+
+                    } else {
+                      _btnController.error();
+                      _showDialog(
+                          context, 'Campos Vacíos', 'Por Favor llenar todos los campos');
+                    }
+                  },
+                  child: Text("Ingresar",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: Colors.white, fontSize: 22, fontFamily: 'Grill')),
+                ),
                 SizedBox(
                   height: 25.0,
                 ),
@@ -307,9 +381,8 @@ class _MyHomePageState extends State<LoginPage> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           color: Colors.white,
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Montserrat')),
+                          fontSize: 20,
+                          fontFamily: 'Grill')),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -333,19 +406,36 @@ class _MyHomePageState extends State<LoginPage> {
   }
 }
 
-void _showDialog(context, titulo, contenido) {
+void limpiarTextController(
+    TextEditingController correlativo, TextEditingController clave) {
+  correlativo.text = '';
+  clave.text = '';
+}
+
+//iconos los mensajes
+
+//Que se les pueda dar en negrita
+
+//Tiempo para compilar
+void _salirAPP(context) {
   // flutter defined function
   showDialog(
     context: context,
     builder: (BuildContext context) {
       // return object of type Dialog
       return AlertDialog(
-        title: new Text(titulo),
-        content: new Text(contenido),
+        title: new Text("Cerrar APP!", style: TextStyle(fontFamily: 'Gill')),
+        content: new Text('Desea Cerrar la APP ??', style: TextStyle(fontFamily: 'Gill')),
         actions: <Widget>[
+          new FlatButton(
+            child: new Text("Cerrar App", style: TextStyle(fontFamily: 'Gill')),
+            onPressed: () {
+              exit(0);
+            },
+          ),
           // usually buttons at the bottom of the dialog
           new FlatButton(
-            child: new Text("Close"),
+            child: new Text("Close", style: TextStyle(fontFamily: 'Gill')),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -354,28 +444,4 @@ void _showDialog(context, titulo, contenido) {
       );
     },
   );
-}
-
-Future<String> getMacAddressLogin() async {
-  String macAddress;
-  try {
-    macAddress = await GetMac.macAddress;
-  } on PlatformException {
-    macAddress = "Fallo al obtener el nacaddress";
-  }
-  _loginMac = macAddress;
-  return _loginMac;
-}
-
-class Permisos {
-  String studentId;
-  String studentName;
-  int studentScores;
-
-  Permisos({this.studentId, this.studentName, this.studentScores});
-}
-
-Future<String> _loadAStudentAsset() async {
-  return await rootBundle
-      .loadString('https://8.189.26.76:8000/api/accesosusuario');
 }

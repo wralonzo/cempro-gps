@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:cempro_gps/constantes/url_helper.dart';
 import 'package:cempro_gps/formularios/meses_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 
 class ClavePage extends StatefulWidget {
@@ -21,6 +23,7 @@ class _RegisterScreenState extends State<ClavePage> {
   bool isConfirmPasswordVisible = false;
   final FocusNode _correlativoFocus = FocusNode(); //added globally
   final FocusNode _nitFocus = FocusNode();
+  final FocusNode _dias = FocusNode();
   final FocusNode _passwordFocus = FocusNode(); //added globally
   final FocusNode _passwordVerifyFocus = FocusNode();
 
@@ -28,7 +31,7 @@ class _RegisterScreenState extends State<ClavePage> {
 
   Future<String> resetPassword(String correlativo, String nit,
       String fechaNacimiento, String newPassword) async {
-    String url = 'http://18.189.26.76:8000/api/recuperarclave';
+    // String url = 'http://18.189.26.76:8000/api/recuperarclave';
     Map datos = {
       "correlativo": correlativo,
       "nit": nit,
@@ -36,7 +39,12 @@ class _RegisterScreenState extends State<ClavePage> {
       "nuevaclave": newPassword
     };
 
-    var respuesta = await post(url, body: datos);
+    var respuesta = await post(URL_BASE + 'recuperarclave',
+        headers: {
+          "Accept": "application/json",
+          "APP-KEY": APP_KEY,
+          "APP-SECRET": APP_SECRET
+        }, body: datos);
     // print(respuesta.body);
     var map = jsonDecode(respuesta.body);
     var mensaje = map['mensaje'];
@@ -57,11 +65,12 @@ class _RegisterScreenState extends State<ClavePage> {
       _showDialog(context, "Error!", "Verifique acceso a internet");
     }
   }
-
   // fin de funciones de esta pagina
+
+  //variables para el a;o
   String fecha = '';
   String holder = '';
-  String dropdownValue = '2021';
+  String dropdownValue = 'Año';
 // To show Selected Item in Text.
 
   List<Company> _companies = Company.getCompanies();
@@ -71,6 +80,7 @@ class _RegisterScreenState extends State<ClavePage> {
   @override
   void initState() {
     super.initState();
+
     isPasswordVisible = false;
     isConfirmPasswordVisible = false;
 
@@ -81,6 +91,13 @@ class _RegisterScreenState extends State<ClavePage> {
     _selectedMeses = _dropdownMenuItemsMeses[0].value;
     getDropDownItem();
     getDropDownItemDias();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+
   }
 
   //crear select mes
@@ -134,8 +151,9 @@ class _RegisterScreenState extends State<ClavePage> {
     });
   }
 
-  String dropdownValueDias = '01';
-// To show Selected Item in Text.
+  //select para los dias
+  String dropdownValueDias = 'Día';
+  // To show Selected Item in Text.
   String holderDias = '';
   void getDropDownItemDias() {
     setState(() {
@@ -148,8 +166,9 @@ class _RegisterScreenState extends State<ClavePage> {
     return Scaffold(
       backgroundColor: Colors.grey,
       appBar: AppBar(
-        title: Text('Recuperar Clave'),
-        backgroundColor: Colors.lightGreen,
+        centerTitle: true,
+        title: Text('Recuperar Clave', style: TextStyle(fontFamily:'Gill', fontSize: 25, color: Color.fromRGBO(14, 123, 55, 100)),),
+        backgroundColor: Color.fromRGBO(193, 216, 47, 0.8),
         shape: ContinuousRectangleBorder(
             borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(200),
@@ -160,9 +179,6 @@ class _RegisterScreenState extends State<ClavePage> {
             padding: EdgeInsets.only(top: 32.0),
             child: Column(
               children: <Widget>[
-                SizedBox(
-                  height: 50,
-                ),
                 // getWidgetImageLogo(),
                 getWidgetRegistrationCard(),
               ],
@@ -171,55 +187,75 @@ class _RegisterScreenState extends State<ClavePage> {
     );
   }
 
-  Widget getWidgetImageLogo() {
-    return Container(
-        alignment: Alignment.center,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 32, bottom: 32),
-          child: Icon(Icons.ac_unit),
-        ));
-  }
+  // Widget getWidgetImageLogo() {
+  //   return Container(
+  //       alignment: Alignment.center,
+  //       child: Padding(
+  //         padding: const EdgeInsets.only(top: 32, bottom: 32),
+  //         child: Icon(Icons.ac_unit),
+  //       ));
+  // }
 
   Widget getWidgetRegistrationCard() {
-    // final FocusNode _passwordEmail = FocusNode();
-    // final FocusNode _passwordFocus = FocusNode();
-    // final FocusNode _passwordConfirmFocus = FocusNode();
-
     var textFormField = TextFormField(
         controller: _textEditPassword,
         focusNode: _passwordFocus,
         keyboardType: TextInputType.text,
-        textInputAction: TextInputAction.done,
+        textInputAction: TextInputAction.next,
         validator: _validatePassword,
         obscureText: !isPasswordVisible,
+        onFieldSubmitted: (String value) {
+          FocusScope.of(context).requestFocus(_passwordVerifyFocus);
+        },
         decoration: InputDecoration(
-            labelText: 'Nueva Clave',
-            suffixIcon: IconButton(
-              icon: Icon(isConfirmPasswordVisible
-                  ? Icons.visibility
-                  : Icons.visibility_off),
-              onPressed: () {
-                setState(() {
-                  isPasswordVisible = !isPasswordVisible;
-                  _validatePasswordVerify(
-                      _textEditPassword.text, _textEditPassword.text);
-                });
-              },
-            ),
-            icon: Icon(Icons.vpn_key)));
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12.0)),
+            borderSide: BorderSide(color: Color.fromRGBO(14, 123, 55, 99.0), width: 2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+            borderSide: BorderSide(color: Color.fromRGBO(14, 123, 55, 99.0), width: 2),
+          ),
+        prefixIcon: Icon(Icons.vpn_key, color: Color.fromRGBO(14, 123, 55, 99.0)),
+        labelText: 'Nueva Clave',
+        labelStyle: TextStyle(color: Color.fromRGBO(14, 123, 55, 99.0), fontFamily: 'Gill'),
+        suffixIcon: IconButton(
+          icon: Icon(isConfirmPasswordVisible
+              ? Icons.visibility
+              : Icons.visibility_off, color: Color.fromRGBO(14, 123, 55, 99.0)),
+          onPressed: () {
+            setState(() {
+              isPasswordVisible = !isPasswordVisible;
+              _validatePasswordVerify(
+                  _textEditPassword.text, _textEditPassword.text);
+            });
+          },
+        ),
+    )
+    );
     var textFormFieldConfirmPass = TextFormField(
         controller: _textEditPasswordVerify,
         focusNode: _passwordVerifyFocus,
         keyboardType: TextInputType.text,
-        textInputAction: TextInputAction.done,
+        textInputAction: TextInputAction.next,
         validator: _validateConfirmPassword,
         obscureText: !isConfirmPasswordVisible,
         decoration: InputDecoration(
+            prefixIcon: Icon(Icons.vpn_key, color: Color.fromRGBO(14, 123, 55, 99.0)),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12.0)),
+            borderSide: BorderSide(color: Color.fromRGBO(14, 123, 55, 99.0), width: 2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10.0)),
+            borderSide: BorderSide(color: Color.fromRGBO(14, 123, 55, 99.0), width: 2),
+          ),
             labelText: 'Confirmar Clave',
+            labelStyle: TextStyle(color: Color.fromRGBO(14, 123, 55, 99.0), fontFamily: 'Gill'),
             suffixIcon: IconButton(
               icon: Icon(isConfirmPasswordVisible
                   ? Icons.visibility
-                  : Icons.visibility_off),
+                  : Icons.visibility_off, color: Color.fromRGBO(14, 123, 55, 99.0)),
               onPressed: () {
                 setState(() {
                   isConfirmPasswordVisible = !isConfirmPasswordVisible;
@@ -228,7 +264,8 @@ class _RegisterScreenState extends State<ClavePage> {
                 });
               },
             ),
-            icon: Icon(Icons.vpn_key)));
+            )
+    );
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0),
       child: Card(
@@ -248,67 +285,106 @@ class _RegisterScreenState extends State<ClavePage> {
                   alignment: Alignment.center,
                   width: double.infinity,
                   child: Text(
-                    'Actualizar Clave',
-                    style: TextStyle(fontSize: 18.0, color: Colors.black),
+                    'Recuperar Clave',
+                    style: TextStyle(fontSize: 24.0, color: Colors.grey, fontFamily: 'Gill'),
                   ),
-                ), // title: login
+                ),
+                SizedBox(height: 20), // title: login
                 Container(
                   child: TextFormField(
                     controller: _textEditCorrelativo,
-                    keyboardType: TextInputType.text,
+                    keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.next,
                     validator: _validateUserName,
                     onFieldSubmitted: (String value) {
-                      FocusScope.of(context).requestFocus(_correlativoFocus);
+                      FocusScope.of(context).requestFocus(_nitFocus);
                     },
                     decoration: InputDecoration(
-                        labelText: 'Correlativo',
-                        //prefixIcon: Icon(Icons.email),
-                        icon: Icon(Icons.bookmark)),
+                      hintText: 'Correlativo',
+                      prefixIcon: Icon(Icons.vpn_key, color: Color.fromRGBO(14, 123, 55, 99.0)),
+                      hintStyle: TextStyle(color: Color.fromRGBO(14, 123, 55, 99.0), fontFamily: 'Gill'),
+                      filled: true,
+                      fillColor: Colors.white70,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                        borderSide: BorderSide(color: Color.fromRGBO(14, 123, 55, 99.0), width: 2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                        borderSide: BorderSide(color: Color.fromRGBO(14, 123, 55, 99.0), width: 2),
+                      ),
+                    ),
                   ),
-                ), //text field : user name
+                ),
+                SizedBox(height: 20),//text field : user name
                 Container(
                   child: TextFormField(
                     controller: _textEditNit,
                     focusNode: _nitFocus,
-                    keyboardType: TextInputType.emailAddress,
+                    keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     validator: _validateEmail,
                     onFieldSubmitted: (String value) {
-                      FocusScope.of(context).requestFocus(_passwordFocus);
+                      FocusScope.of(context).requestFocus(_dias);
                     },
-                    decoration: InputDecoration(
-                        labelText: 'N.I.T',
-                        //prefixIcon: Icon(Icons.email),
-                        icon: Icon(Icons.book)),
+
+                      decoration: InputDecoration(
+                        hintText: 'N.I.T',
+                        prefixIcon: Icon(Icons.credit_card_sharp, color: Color.fromRGBO(14, 123, 55, 99.0)),
+                        hintStyle: TextStyle(color: Color.fromRGBO(14, 123, 55, 99.0), fontFamily: 'Gill'),
+                        filled: true,
+                        fillColor: Colors.white70,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                          borderSide: BorderSide(color: Color.fromRGBO(14, 123, 55, 99.0), width: 2),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                          borderSide: BorderSide(color: Color.fromRGBO(14, 123, 55, 99.0), width: 2),
+                        ),
+                      ),
                   ),
                 ),
                 SizedBox(height: 20), //text field: email
-                new Center(
-                  child: Column(
-                    children: <Widget>[
-                      Text('Seleccione su Fecha de Nacimiento',
-                          style:
-                              TextStyle(color: Colors.black54, fontSize: 13)),
-                    ],
+                Container(
+                  // height: 90,
+                  width: 600,
+                  // margin: EdgeInsets.all(10),
+                  // padding: EdgeInsets.all(10),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Color.fromRGBO(14, 123, 55, 99.0),
+                        style: BorderStyle.solid,
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(15.0),
+                      )
                   ),
-                ),
-                Center(
                   child: Column(
                     children: <Widget>[
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Text('Fecha de Nacimiento',
+                              style: TextStyle(color: Colors.black54, fontSize: 13, fontFamily: 'Gill')
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: <Widget>[
-                          Text("     "),
-                          Text("Día  "),
                           DropdownButton<String>(
                             value: dropdownValueDias,
+                            focusNode: _dias,
                             icon: Icon(Icons.arrow_drop_down),
                             iconSize: 24,
                             elevation: 16,
-                            style: TextStyle(color: Colors.green, fontSize: 13),
+                            style: TextStyle(color: Colors.black54, fontSize: 13, fontFamily: 'Gill'),
                             underline: Container(
                               height: 2,
-                              color: Colors.deepPurpleAccent,
+                              color: Color.fromRGBO(14, 123, 55, 99.0),
                             ),
                             onChanged: (String data) {
                               setState(() {
@@ -321,28 +397,30 @@ class _RegisterScreenState extends State<ClavePage> {
                                 value: value,
                                 child: Text(value,
                                     style: TextStyle(
-                                        color: Colors.green, fontSize: 13)),
+                                        color: Colors.black54, fontSize: 13, fontFamily: 'Gill')),
                               );
                             }).toList(),
                           ),
-                          Text("  Mes "),
                           DropdownButton(
-                            style: TextStyle(color: Colors.green, fontSize: 13),
+                            style: TextStyle(color: Colors.black54, fontFamily: 'Gill', fontSize: 13),
                             value: _selectedMeses,
                             items: _dropdownMenuItemsMeses,
                             onChanged: onChangeDropdownItemMeses,
+                            underline: Container(
+                              height: 2,
+                              color: Color.fromRGBO(14, 123, 55, 99.0),
+                            ),
                           ),
-                          Text(" Año "),
                           DropdownButton<String>(
                             value: dropdownValue,
                             icon: Icon(Icons.arrow_drop_down),
                             iconSize: 24,
                             elevation: 16,
                             style: TextStyle(
-                                color: Colors.redAccent, fontSize: 13),
+                                color: Color.fromRGBO(14, 123, 55, 99.0), fontSize: 13),
                             underline: Container(
                               height: 2,
-                              color: Colors.green,
+                              color: Color.fromRGBO(14, 123, 55, 99.0),
                             ),
                             onChanged: (String data) {
                               setState(() {
@@ -360,7 +438,7 @@ class _RegisterScreenState extends State<ClavePage> {
                                 value: value,
                                 child: Text(value,
                                     style: TextStyle(
-                                        color: Colors.green, fontSize: 13)),
+                                        color: Colors.black54, fontFamily: 'Gill', fontSize: 13)),
                               );
                             }).toList(),
                           ),
@@ -368,10 +446,12 @@ class _RegisterScreenState extends State<ClavePage> {
                       )
                     ],
                   ),
-                ), //text field: password
+                ),
+                SizedBox(height: 20), //text field: password
                 Container(
                   child: textFormField,
                 ),
+                SizedBox(height: 20),
                 Container(
                   child: textFormFieldConfirmPass,
                 ),
@@ -384,18 +464,21 @@ class _RegisterScreenState extends State<ClavePage> {
                     elevation: 5.0,
                     padding: EdgeInsets.only(top: 16.0, bottom: 16.0),
                     child: Text(
-                      'Actualizar Clave',
-                      style: TextStyle(fontSize: 16.0),
+                      'Recuperar Clave',
+                      style: TextStyle(fontSize: 20.0, fontFamily: 'Gill'),
                     ),
                     onPressed: () {
+                      if(dropdownValue != 'Año' || _selectedMeses.id != '20' || dropdownValueDias != 'Día'){
                       if (_keyValidationForm.currentState.validate()) {}
                       if (match_password(_textEditPassword.text,
                               _textEditPasswordVerify.text) ==
                           true) {
+
                         resetPassword(_textEditCorrelativo.text,
                             _textEditNit.text, fecha, _textEditPassword.text);
                         // print(_textEditPassword.text);
-                      } else {
+                      }
+                      }else {
                         _showDialog(context, "Error en Claves!",
                             "Ingrese Claves Iguales");
                       }
@@ -492,12 +575,12 @@ void _showDialog(context, titulo, contenido) {
     builder: (BuildContext context) {
       // return object of type Dialog
       return AlertDialog(
-        title: new Text(titulo),
-        content: new Text(contenido),
+        title: new Text(titulo, style: TextStyle(fontFamily: 'Gill')),
+        content: new Text(contenido, style: TextStyle(fontFamily: 'Gill')),
         actions: <Widget>[
           // usually buttons at the bottom of the dialog
           new FlatButton(
-            child: new Text("Close"),
+            child: new Text("Close", style: TextStyle(fontFamily: 'Gill')),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -509,6 +592,7 @@ void _showDialog(context, titulo, contenido) {
 }
 
 List<String> dias = [
+  'Día',
   '01',
   '02',
   '03',
@@ -542,6 +626,7 @@ List<String> dias = [
   '31',
 ];
 List<String> actorsName = [
+  'Año',
   '2021',
   '2020',
   '2019',

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:barcode_scan/barcode_scan.dart';
+import 'package:cempro_gps/constantes/url_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
@@ -33,8 +34,28 @@ class _ScanState extends State<ScanScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: new AppBar(
-          title: new Text('SCANNER QR MARCAJES'),
-          backgroundColor: Colors.lightGreen,
+          title: new Center(
+              child: Column(
+                // mainAxisAlignment: MainAxisAlignment.center,
+                // crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+
+                      Text('Scanner qr',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontFamily:'Gill',
+                              fontSize: 25,
+                              color: Color.fromRGBO(14, 123, 55, 99.0))
+                      ),
+                    ],
+                  )
+                ],
+            )
+          ),
+          backgroundColor: Color.fromRGBO(193, 216, 47, 0.8),
           shape: ContinuousRectangleBorder(
               borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(200),
@@ -47,7 +68,7 @@ class _ScanState extends State<ScanScreen> {
               if (barcode == 'Sin acceso a la cámara!' ||
                   barcode == '' ||
                   barcode == 'Por Favor Scanner Código QR')
-                if (contador < 1)
+                if (contador == 0)
                   Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: 3.0, vertical: 8.0),
@@ -56,7 +77,11 @@ class _ScanState extends State<ScanScreen> {
                       textColor: Colors.white,
                       splashColor: Colors.blueGrey,
                       onPressed: () {
+                        setState(() {
+                          contador = contador + 1;
+                        });
                         scan();
+
                       },
                       child: Container(
                         height: 50,
@@ -64,7 +89,7 @@ class _ScanState extends State<ScanScreen> {
                         // color: Colors.green,
                         padding: const EdgeInsets.all(15.0),
                         child: Text("Scannear Código QR",
-                            style: TextStyle(fontSize: 15),
+                            style: TextStyle(fontSize: 15, fontFamily: 'Gill'),
                             textAlign: TextAlign.center),
                       ),
                       // shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)),
@@ -76,15 +101,18 @@ class _ScanState extends State<ScanScreen> {
               if (barcode != 'Sin acceso a la cámara!' &&
                   barcode != '' &&
                   barcode != 'Por Favor Scanner Código QR')
-                if (contador < 2)
+                if (contador == 1)
                   Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: 3.0, vertical: 8.0),
                     child: RaisedButton(
-                      color: Colors.green,
+                      color: Color.fromRGBO(66, 172, 53,  50),
                       textColor: Colors.white,
                       splashColor: Colors.blueGrey,
                       onPressed: () {
+                        setState(() {
+                          contador = 0;
+                        });
                         Map valueMap = jsonDecode(barcode);
                         guardarMarcaje(
                             valueMap['Latitud'].toString(),
@@ -95,7 +123,6 @@ class _ScanState extends State<ScanScreen> {
                             valueMap['nombreqr'],
                             widget.usuario,
                             context);
-                        contador = 1;
                       },
                       child: Container(
                         height: 50,
@@ -153,7 +180,7 @@ Future<String> guardarMarcaje(
     String nombreqr,
     usuario,
     context) async {
-  String urlMarcajes = 'http://18.189.26.76:8000/api/logmarcajesgral';
+  // String urlMarcajes = 'http://18.189.26.76:8000/api/logmarcajesgral';
   DateTime now = DateTime.now();
   var formatter = new DateFormat("yyyy-MM-dd");
   String fecha = formatter.format(now);
@@ -177,7 +204,12 @@ Future<String> guardarMarcaje(
     "name": usuario
   };
 
-  var respuesta = await post(urlMarcajes, body: datos);
+  var respuesta = await post(URL_BASE + 'logmarcajesgral',
+      headers: {
+        "Accept": "application/json",
+        "APP-KEY": APP_KEY,
+        "APP-SECRET": APP_SECRET
+      }, body: datos);
 
   var map = jsonDecode(respuesta.body);
   var mensaje = map['mensaje'];
@@ -200,12 +232,12 @@ void _showDialog(context, titulo, contenido) {
     builder: (BuildContext context) {
       // return object of type Dialog
       return AlertDialog(
-        title: new Text(titulo),
-        content: new Text(contenido),
+        title: new Text(titulo, style: TextStyle(fontFamily: 'Gill')),
+        content: new Text(contenido, style: TextStyle(fontFamily: 'Gill')),
         actions: <Widget>[
           // usually buttons at the bottom of the dialog
           new FlatButton(
-            child: new Text("Close"),
+            child: new Text("Close", style: TextStyle(fontFamily: 'Gill')),
             onPressed: () {
               Navigator.of(context).pop();
             },

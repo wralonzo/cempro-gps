@@ -1,5 +1,3 @@
-import 'package:cempro_gps/pages/acceso_gps_page.dart';
-import 'package:cempro_gps/pages/loading_page.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -7,8 +5,6 @@ import 'modelos/login_class.dart';
 import 'package:cempro_gps/login/login_page.dart';
 import 'formularios/alta_form_page.dart';
 import 'helpers/sqlLite_helper.dart';
-
-
 
 final dbHelper = DatabaseHelper.instance;
 List<Login> logs = [];
@@ -21,12 +17,6 @@ void main() {
   MaterialApp(
     debugShowCheckedModeBanner: false,
     home: MyApp(),
-    routes:{
-      // 'mapa'    : ( _ ) => MapaPage("null"),
-      'loading' : ( _ ) => LoadingPage(),
-      'acceso_gps': ( _ ) => AccesoGpsPage(),
-      // 'home': ( _ ) => HomePage("null")
-    },
   ));
 }
 
@@ -47,13 +37,19 @@ class _MyAppState extends State<MyApp> {
     return new Scaffold(
       backgroundColor: Colors.white,
       body: Container(
-        child: new Column(children: <Widget>[
-          Divider(
-            height: 240.0,
-            color: Colors.white,
-          ),
+        // alignment: AlignmentDirectional.center,
+        child: new Column(
+          // crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+
+          // Divider(
+          //   height: 240.0,
+          //   color: Colors.white,
+          // ),
+
           new Image.asset(
-            'assets/logo_small.png',
+            'assets/logo.png',
             fit: BoxFit.cover,
             repeat: ImageRepeat.noRepeat,
             width: 170.0,
@@ -91,3 +87,4 @@ void _query(context) async {
             ));
   }
 }
+

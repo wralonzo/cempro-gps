@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
-
+import 'package:back_button_interceptor/back_button_interceptor.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:cempro_gps/constantes/url_helper.dart';
 import 'package:cempro_gps/formularios/politicas.dart';
 import 'package:cempro_gps/helpers/mi_button.dart';
 import 'package:cempro_gps/helpers/sqlLite_helper.dart';
@@ -14,51 +17,21 @@ import 'package:get_mac/get_mac.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 import 'meses_model.dart';
 
 int contador = 0;
 bool rememberMe = false;
-bool checkMarcador = false;
-
 String _macAddress = "Unknown";
-// String _nocontacts = 'Unknown';
 final dbHelper = DatabaseHelper.instance;
-Future<AltaForm> _futureAlbum;
-String urlCheck = "http://18.189.26.76:8000/api/checkin";
-String nombre1 = '';
-String nombre2 = '';
-String lastName1 = '';
-String lastName2 = '';
-String res = 'KO';
-String cadena1 = '' ;
+String userGenerado = '' ;
 int MAX = 99;
 int numeroAleatorio = 1;
-
-Future<String> checkIn(String userId, String nit, String birth) async{
-
-  Map datos = {
-    "userid": userId,
-    "nit": nit,
-    "birth": birth
-  };
-
-  var respuesta = await http.post(urlCheck, body: datos );
-  // print(respuesta.body);
-  Map<String, dynamic> map = jsonDecode(respuesta.body);
-  nombre1 = map['name1'];
-  nombre2 = map['name2'];
-  lastName1 = map['last-name1'];
-  lastName2 = map['last-name2'];
-  if(map['res'] == false){
-    res = "KO";
-  }else{
-    res = 'OK';
-  }
-    // res = map['res'];
-  print(res);
-
-}
+String nombre1 ="";
+String nombre2 = "";
+String lastName1 = "";
+String lastName2 = "";
 
 
 class FormDeAlta extends StatelessWidget {
@@ -67,9 +40,6 @@ class FormDeAlta extends StatelessWidget {
   Widget build(BuildContext context) {
     return new MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: new ThemeData(
-        primarySwatch: Colors.lightGreen,
-      ),
       home: new MyHomePage(title: 'Formulario de Alta'),
     );
   }
@@ -78,7 +48,7 @@ class FormDeAlta extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
   final String title;
-  String nombre = '';
+  String motivoAlta = 'No';
   @override
   _MyHomePageState createState() => new _MyHomePageState();
 
@@ -91,16 +61,14 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController nit = TextEditingController();
   String fecha = '';
   DateTime selectedDate = DateTime.now();
-  bool confirmaEmail = true;
   String motivoAlta = '';
-  String email = '';
   Elementos ele = new Elementos();
   Elementos2 ele2 = new Elementos2();
-  String dropdownValue = '2021';
+  String dropdownValue = 'Año';
 // To show Selected Item in Text.
   String holder = '' ;
-  String rolldispositivo = 'Marcaje' ;
 
+  bool isBackButtonActivated = false;
 
   List<Company> _companies = Company.getCompanies();
   List<DropdownMenuItem<Company>> _dropdownMenuItems;
@@ -109,7 +77,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-
     _dropdownMenuItems = buildDropdownMenuItems(_companies);
     _selectedCompany = _dropdownMenuItems[0].value;
 
@@ -119,6 +86,12 @@ class _MyHomePageState extends State<MyHomePage> {
     getMacAddress();
     getDropDownItem();
     getDropDownItemDias();
+    BackButtonInterceptor.add(myInterceptor);
+  }
+  @override
+  void dispose() {
+    BackButtonInterceptor.remove(myInterceptor);
+    super.dispose();
   }
   //crear select mes
   List<Mes> _meses = Mes.getMeses();
@@ -171,14 +144,17 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  String dropdownValueDias = '01';
+  String dropdownValueDias = 'Día';
 // To show Selected Item in Text.
   String holderDias = '' ;
-  void getDropDownItemDias(){
-
+  void getDropDownItemDias() {
     setState(() {
       holderDias = dropdownValueDias;
     });
+  }
+  bool myInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
+   _salirAPP(context);
+    return true;
   }
   @override
   Widget build(BuildContext context) {
@@ -186,7 +162,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return new Scaffold(
       appBar: new AppBar(
-        title: new Center(child: new Text('Formulario De Alta', textAlign: TextAlign.center)),
+        backgroundColor: Color.fromRGBO(193, 216, 47,  0.8),
+        title: new Center(child:
+        new Text(
+            'Formulario de alta',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontFamily:'Gill', fontSize: 25, color: Color.fromRGBO(14, 123, 55, 99.0))),
+            ),
         shape: ContinuousRectangleBorder(
           borderRadius: BorderRadius.only(
             bottomLeft: Radius.circular(200), bottomRight: Radius.circular(10)
@@ -195,28 +177,31 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: <Widget>[
           IconButton(icon: Icon(Icons.login, color: Colors.white,),
               onPressed: (){
+                Navigator.pop(context);
                 Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
               })
         ]
       ),
-      body: new ListView(
-
+      body: ListView(
         children: <Widget>[
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                SizedBox(height: 10),
+                SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset(
+                    ColorFiltered(
+                      colorFilter: ColorFilter.mode(Colors.lightGreenAccent.withOpacity(0.1), BlendMode.srcOver),
+                      child: Image.asset(
                         "assets/progreso.png",
-                        width: 30,
-                        height: 30,
-                        fit:BoxFit.fill
+                        width: 60,
+                        height: 60,
+                        fit:BoxFit.fill,
+                      ),
                     ),
-                    Text('  Progreso', style: TextStyle(fontSize: 35, fontFamily:'Montserrat', color: Colors.black,fontWeight: FontWeight.bold ))
+                    Text('  Progreso', style: TextStyle(fontSize: 40, fontFamily:'Gotan', color: Color.fromRGBO(84, 87, 89, 1.0),fontWeight: FontWeight.bold ))
                   ],
                 ),
 
@@ -224,7 +209,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           SizedBox(
-            height: 60
+            height: 40
           ),
           new ListTile(
             title: new TextField(
@@ -234,67 +219,61 @@ class _MyHomePageState extends State<MyHomePage> {
                 textInputAction: TextInputAction.next,
                 obscureText: false,
                 decoration: InputDecoration(
-                  hintText: 'Ingrese su Correlativo',
-                  prefixIcon: Icon(Icons.vpn_key_outlined),
-                  hintStyle: TextStyle(color: Colors.grey),
+                  hintText: 'Correlativo',
+                  prefixIcon: Icon(Icons.vpn_key, color: Color.fromRGBO(0, 99, 38, 50), size: 30),
+                  hintStyle: TextStyle(color: Color.fromRGBO(84, 87, 89, 50), fontSize: 15, fontFamily: 'Gill'),
                   filled: true,
                   fillColor: Colors.white70,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12.0)),
-                    borderSide: BorderSide(color: Colors.lightGreen, width: 2),
+                    borderSide: BorderSide(color: Color.fromRGBO(66, 172, 53, 50), width: 1),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                    borderSide: BorderSide(color: Colors.green, width: 2),
+                    borderSide: BorderSide(color: Color.fromRGBO(0, 99, 38, 50), width: 2),
                   ),
               ),
             ),
           ),
           SizedBox(
-              height: 20
+              height: 15
           ),
           new ListTile(
             title: new TextField(
               controller: nit,
               onChanged: (text) {
                   text = nit.text;
-                  checkIn(text, nit.text, fecha);
-
               },
               decoration: InputDecoration(
-                hintText: 'Ingrese su N.I.T',
-                prefixIcon: Icon(Icons.credit_card_sharp),
-                hintStyle: TextStyle(color: Colors.grey),
+                hintText: 'N.I.T',
+                prefixIcon: Icon(Icons.credit_card_sharp, color: Color.fromRGBO(0, 99, 38, 50), size: 30),
+                hintStyle: TextStyle(color: Color.fromRGBO(84, 87, 89, 50), fontSize: 15, fontFamily: 'Gill'),
                 filled: true,
                 fillColor: Colors.white70,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12.0)),
-                  borderSide: BorderSide(color: Colors.lightGreen, width: 2),
+                  borderSide: BorderSide(color: Color.fromRGBO(66, 172, 53, 50), width: 1),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                  borderSide: BorderSide(color: Colors.green, width: 2),
+                  borderSide: BorderSide(color: Color.fromRGBO(0, 99, 38, 50), width: 2),
                 ),
               ),
 
             ),
           ),
-          SizedBox(height: 20),
-          new Center(
-            child: Column(
-              children: <Widget>[
-              ],
-            ),
-
+          SizedBox(
+              height: 5
           ),
           Container(
             margin: EdgeInsets.all(15),
-            padding: EdgeInsets.all(4),
-            alignment: Alignment.center,              decoration: BoxDecoration(
+            padding: EdgeInsets.all(10),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
               border: Border.all(
-                color: Colors.lightGreen,
+                color: Color.fromRGBO(66, 172, 53, 50),
                 style: BorderStyle.solid,
-                width: 2,
+                width: 1,
               ),
               borderRadius: BorderRadius.all(
                 Radius.circular(15.0),
@@ -303,19 +282,23 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Column(
               children: <Widget>[
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: <Widget>[
-                    Text('Fecha', style: TextStyle(color: Colors.black54, fontSize: 13)),
-
-                    Text("Día: "),
+                    Icon(
+                        Icons.keyboard,
+                        color: Color.fromRGBO(0, 99, 38, 50),
+                        size: 35
+                    ),
+                    Text('Fecha Nacimiento  ', style: TextStyle(color: Color.fromRGBO(84, 87, 89, 50), fontSize: 15, fontFamily: 'Gill')),
                     DropdownButton<String>(
                       value: dropdownValueDias,
                       icon: Icon(Icons.arrow_drop_down),
                       iconSize: 24,
                       elevation: 16,
-                      style: TextStyle(color: Colors.green, fontSize: 13),
+                      style: TextStyle(color: Color.fromRGBO(84, 87, 89, 50), fontSize: 15, fontFamily: 'Gill'),
                       underline: Container(
                         height: 2,
-                        color: Colors.deepPurpleAccent,
+                        color: Color.fromRGBO(0, 99, 38, 50),
                       ),
                       onChanged: (String data) {
                         setState(() {
@@ -324,29 +307,31 @@ class _MyHomePageState extends State<MyHomePage> {
                       },
                       items: dias.map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
+
                           value: value,
-                          child: Text(value, style: TextStyle(color: Colors.green, fontSize: 13)),
+                          child: Text(value, style: TextStyle(color: Color.fromRGBO(84, 87, 89, 50), fontSize: 14, fontFamily: 'Gill')),
                         );
                       }).toList(),
                     ),
-
-                    Text(" Mes: "),
                     DropdownButton(
-                      style: TextStyle(color: Colors.green, fontSize: 13),
+                      style: TextStyle(color: Color.fromRGBO(84, 87, 89, 50), fontSize: 15, fontFamily: 'Gill'),
                       value: _selectedMeses,
                       items: _dropdownMenuItemsMeses,
+                      underline: Container(
+                        height: 2,
+                        color: Color.fromRGBO(0, 99, 38, 50),
+                      ),
                       onChanged: onChangeDropdownItemMeses,
                     ),
-                    Text(" Año: "),
                     DropdownButton<String>(
                       value: dropdownValue,
                       icon: Icon(Icons.arrow_drop_down),
                       iconSize: 24,
                       elevation: 16,
-                      style: TextStyle(color: Colors.redAccent, fontSize: 13),
+                      style: TextStyle(color: Color.fromRGBO(84, 87, 89, 50), fontSize: 15, fontFamily: 'Gill'),
                       underline: Container(
                         height: 2,
-                        color: Colors.green,
+                        color: Color.fromRGBO(0, 99, 38, 50),
                       ),
                       onChanged: (String data) {
                         setState(() {
@@ -357,85 +342,89 @@ class _MyHomePageState extends State<MyHomePage> {
                       items: actorsName.map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
-                          child: Text(value, style: TextStyle(color: Colors.green, fontSize: 13)),
+                          child: Text(value, style: TextStyle(color: Color.fromRGBO(84, 87, 89, 50), fontSize: 15, fontFamily: 'Gill')),
                         );
                       }).toList(),
                     ),
-
-
                   ],
                 )
               ],
             ),
           ),
-          Container(
-            margin: EdgeInsets.all(15),
-            padding: EdgeInsets.all(4),
-            alignment: Alignment.center,              decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.lightGreen,
-                    style: BorderStyle.solid,
-                    width: 2,
+            Container(
+              margin: EdgeInsets.all(15),
+              padding: EdgeInsets.all(10),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Color.fromRGBO(66, 172, 53, 50),
+                      style: BorderStyle.solid,
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(15.0),
+                    )
+                ),
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.list,
+                        color: Color.fromRGBO(0, 99, 38, 50),
+                        size: 40
+                      ),
+                      Text('   '),
+                      DropdownButton(
+                          style: TextStyle(color: Color.fromRGBO(84, 87, 89, 50), fontSize: 15, fontFamily: 'Gill'),
+                          value: _selectedCompany,
+                          items: _dropdownMenuItems,
+                          onChanged: onChangeDropdownItem
+                      ),
+                    ],
                   ),
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(15.0),
-                  )
+                ],
               ),
-              child: DropdownButton(
-                  style: TextStyle(color: Colors.black54, fontSize: 13),
-                  icon: Icon(Icons.list, color: Colors.green, size: 50),
-                  value: _selectedCompany,
-                  items: _dropdownMenuItems,
-                  onChanged: onChangeDropdownItem
               ),
-            ),
-
-          SizedBox(height: 30),
-
           new Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                if(rememberMe == false || contador < 1)
                   Column(
                     children: <Widget>[
                       FlatButton(
                           onPressed: () {
+                            motivoAlta = 'Si';
                             fecha = dropdownValue+'-'+_selectedMeses.id+'-'+dropdownValueDias;
                             irPoliticas(context);
                           },
                           child: Icon(
                             Icons.policy,
-                            color: Colors.green,
-                            size: 60,
+                            color: Color.fromRGBO(66, 172, 53, 50),
+                            size: 80,
                           )),
-                      Text("Aceptar Políticas Progreso"),
+                      SizedBox(height: 10),
+                      Text("Aceptar Políticas Progreso", style: TextStyle(color: Color.fromRGBO(84, 87, 89, 50), fontSize: 18, fontFamily: 'Gill')),
                     ],
                   ),
-
-                    // ],
-                  // ),
-
-                SizedBox(height: 30),
                 Checkbox(
                   value: rememberMe,
+                  focusColor: Color.fromRGBO(66, 172, 53, 50),
+                  checkColor: Colors.white,
+                  hoverColor: Color.fromRGBO(66, 172, 53, 50),
+                  activeColor: Color.fromRGBO(66, 172, 53, 50),
                   onChanged: (bool newValue) {
                     setState(() {
                       fecha = dropdownValue+'-'+_selectedMeses.id+'-'+dropdownValueDias;
                       contador = 1;
                       rememberMe = newValue;
+                      motivoAlta = 'Si';
                       getMacAddress();
-                      checkIn(correlativo.text, nit.text, fecha);
-                      print(fecha);
-                      print(rolldispositivo);
                     });
                   },
                 ),
-                Text("Aceptar Politicas de CEMPRO"),
-                SizedBox(height: 60),
-                if(rememberMe == true && contador > 0)
-
                   RaisedButton(
                     onPressed: ()async {
                       setState(() {
@@ -444,24 +433,13 @@ class _MyHomePageState extends State<MyHomePage> {
                       });
                       var permisos = await Permission.phone.status;
                       if(permisos == PermissionStatus.granted){
-                        checkIn(correlativo.text, nit.text, fecha);
-                        _insertVeces(1, "Nombre");
-                        // print(res);
-                        nombre = _selectedCompany.name;
-                        if(res == 'OK'){
-
-                          cadena1 = nombre1.substring(0, 1);
-                          cadena1 = cadena1+nombre2.substring(0,2)+lastName1+numeroAleatorio.toString();
-                          print(_macAddress);
-                          _futureAlbum = createAlbum(cadena1, email, correlativo.text, fecha, nit.text, _macAddress, nombre, rolldispositivo);
-                          Navigator.of(context).pop();
-                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginPage(),));
+                        motivoAlta = _selectedCompany.name;
+                        if(correlativo.text != '' && nit.text != '' && dropdownValue != 'Año' && dropdownValueDias != 'Día' && _selectedMeses.id != '20' && motivoAlta != 'Seleccione motivo alta'){
+                          checkIn(correlativo.text, nit.text, fecha, _macAddress, motivoAlta, 'Si', context);
                         }else{
-                          _showDialog(context, "Datos incorrectos!!", 'Ingrese Campos correctos');
-                          print(numeroAleatorio);
-                          print(_macAddress);
-
+                          _showDialog(context, 'Valores incorrectos', 'Ingrese campos Válidos', false);
                         }
+
                       }else{
                         var per = Permission.phone.request();
                       }
@@ -469,21 +447,17 @@ class _MyHomePageState extends State<MyHomePage> {
                     textColor: Colors.white,
                     padding: const EdgeInsets.all(0.0),
                     child: Container(
-                      height: 50,
+                      height: 55,
                       width: 200,
-                      // color: Colors.green,
                       padding: const EdgeInsets.all(15.0),
-                      child: Text("Regístrate", style: TextStyle(fontSize: 15), textAlign: TextAlign.center ),
+                      child: Text("Regístrate", style: TextStyle(fontSize: 18), textAlign: TextAlign.center),
                     ),
-                    color: Colors.green,
+                    color: Color.fromRGBO(66, 172, 53,  50),
                     // shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)),
                     shape: RoundedRectangleBorder(
                         borderRadius: new BorderRadius.circular(25.0),
-                        side: BorderSide(color: Colors.green)),
+                        side: BorderSide(color: Color.fromRGBO(66, 172, 53, 50))),
                   ),
-
-                if(contador < 1 || rememberMe == false)
-                  Text("")
               ],
             ),
           ),
@@ -541,62 +515,177 @@ void _showMessageInScaffold(String message) {
   );
 }
 
-void validarCheckIn(String cadena, String email, String correlativo1, String fecha1, String nit1, String _macAddress, String usuarioName,String rol, BuildContext context)async{
-  // print(res);
-  var permission =  await Permission.phone.status;
-  print(permission);
-  if (permission == PermissionStatus.granted) {
-    if (res == 'OK') {
-      _futureAlbum = createAlbum(
-          cadena,
-          email,
-          correlativo1,
-          fecha1,
-          nit1,
-          _macAddress,
-          usuarioName, rol);
-      guardarDatos(context);
-      // _insertVeces(1, "'" + cadena + "'");
-    }
-    if (res == 'KO') {
-      _showDialog(context, "Datos Incorrectos!!", "No se completo el registro");
-    }
-  }else{
-    var permission = await Permission.phone.request();
-
-  }
-}
-
-void _showDialog(context, titulo, contenido) {
+void _showDialog(context, titulo, contenido, btnCliente) {
   // flutter defined function
   showDialog(
     context: context,
     builder: (BuildContext context) {
       // return object of type Dialog
       return AlertDialog(
-        title: new Text(titulo),
-        content: new Text(contenido),
+        title: new Text(titulo, style: TextStyle(fontFamily: 'Gill')),
+          content: Text(contenido, style: TextStyle(fontFamily: 'Gill')),
         actions: <Widget>[
           // usually buttons at the bottom of the dialog
+          if(btnCliente == true)
+            IconButton(
+              icon: Image.asset('assets/serviciocliente.png'),
+              iconSize: 150,
+              onPressed: () {
+                _llamarServicioClient();
+              },
+            ),
           new FlatButton(
-            child: new Text("Close"),
+            child: new Text("Close", style: TextStyle(fontFamily: 'Gill')),
             onPressed: () {
               Navigator.of(context).pop();
             },
-          ),
+          )
+
+
         ],
       );
     },
   );
 }
+Future<String> checkIn(String correlativo, String nit, String birth, macAddres, motivoAlta, politicas, context) async{
+  String correo = '';
+  Map datos = {
+    "userid": correlativo,
+    "nit": nit,
+    "birth": birth
+  };
+  var respuesta = await http.post(
+      URL_BASE+'checkin',
+      headers: {
+        "Accept": "application/json",
+        "APP-KEY": APP_KEY,
+        "APP-SECRET": APP_SECRET
+      },
+      body: datos
+  );
+  Map<String, dynamic> map = jsonDecode(respuesta.body);
+  nombre1 = map['name1'];
+  nombre2 = map['name2'];
+  lastName1 = map['last-name1'];
+  lastName2 = map['last-name2'];
+  if(respuesta.statusCode == 200) {
+    if(map['res'] == false){
+      _showDialog(context, 'Atención!!', map['mensaje'], true);
 
+    }else{
+      userGenerado = nombre1.substring(0, 1);
+      userGenerado = userGenerado+nombre2.substring(0,2)+lastName1+numeroAleatorio.toString();
+      correo = map['mail'];
+      if(correo == ''){
+        createUser(
+            userGenerado,
+            correlativo,
+            nit,
+            map['userid'],
+            'oner',
+            macAddres,
+            motivoAlta,
+            politicas,
+            birth,
+            context
+        );
+      }else {
+        createUser(
+            userGenerado,
+            correlativo,
+            nit,
+            map['userid'],
+            correo,
+            macAddres,
+            motivoAlta,
+            politicas,
+            birth,
+            context
+        );
+      }
+    }
+
+  }else{
+    _showDialog(context, 'Sin Conexión', 'Verifique su conexión a internet', false);
+  }
+}
+
+Future<AltaForm> createUser(
+    String usuarioGenerado,
+    String correlativo,
+    String nit,
+    String userId,
+    String correo,
+    String macAddress,
+    String motivoAlta,
+    String politicas,
+    String fecha,
+    context
+    ) async {
+  Map datos = {
+    "name": usuarioGenerado,
+    "correlativo": correlativo,
+    "nit": nit,
+    "userid": userId,
+    "email": correo,
+    "macaddress": macAddress,
+    "motivoalta": motivoAlta,
+    "politicas": politicas,
+    "estado": "Activo",
+    "rolldispositivio": "app",
+    "fechanacimiento": fecha
+  };
+
+  var respuesta = await http.post(
+      URL_BASE+'user',
+      headers: {
+        "Accept": "application/json",
+        "APP-KEY": APP_KEY,
+        "APP-SECRET": APP_SECRET
+      },
+      body: datos
+  );
+  Map<String, dynamic> map = jsonDecode(respuesta.body);
+  print(map);
+  if (respuesta.statusCode == 200 || respuesta.statusCode == 201) {
+    if (map['res'] == false) {
+      if(map['mensaje'] == 'Llamar al 2368 8777 para solicitar su clave'){
+        _insertVeces(1, "Nombre");
+        _showDialog(context, 'Atención!!', map['mensaje'], true);
+      }
+      else{
+        _showDialog(context, 'Atención!!', map['mensaje'], true);
+      }
+
+    }else{
+      // _showDialog(context, 'Atención!!', map['mensaje'], false);
+      _insertVeces(1, "Nombre");
+      Navigator.of(context).pop();
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginPage())
+      );
+    }
+
+  } else {
+    _showDialog(context, 'Atención!!', 'No se ha creado el registro', true);
+  }
+}
+
+_llamarServicioClient() async{
+  const appLLamada = 'tel:+502 23688777';
+  if(await launch(appLLamada)){
+    await launch(appLLamada);
+  }else{
+    throw 'No se pudo abrir la App de llamadas';
+  }
+}
 List <String> dias =[
-  '01','02', '03', '04', '05', '06', '07', '08', '09', '10',
+  'Día','01','02', '03', '04', '05', '06', '07', '08', '09', '10',
   '11','12', '13', '14', '15', '16', '17', '18', '19',
   '20','21', '22', '23', '24', '25', '26', '27', '28', '29',
   '30','31',
 ];
 List <String> actorsName = [
+  'Año',
   '2021',
   '2020',
   '2019',
@@ -680,3 +769,32 @@ List <String> actorsName = [
   '1941',
   '1940'
 ] ;
+
+void _salirAPP(context) {
+  // flutter defined function
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      // return object of type Dialog
+      return AlertDialog(
+        title: new Text("Cerrar APP!", style: TextStyle(fontFamily: 'Gill')),
+        content: new Text('Desea Cerrar la APP ??', style: TextStyle(fontFamily: 'Gill')),
+        actions: <Widget>[
+          new FlatButton(
+            child: new Text("Cerrar App", style: TextStyle(fontFamily: 'Gill')),
+            onPressed: () {
+              exit(0);
+            },
+          ),
+          // usually buttons at the bottom of the dialog
+          new FlatButton(
+            child: new Text("Cancelar", style: TextStyle(fontFamily: 'Gill')),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}

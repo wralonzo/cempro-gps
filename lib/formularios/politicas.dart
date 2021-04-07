@@ -50,8 +50,16 @@ class _LoginPageState extends State<Politicas> {
     @override
     Widget build(BuildContext context) => new Scaffold(
       appBar: new AppBar(
-        backgroundColor: Colors.green,
-        title: new Text('Politicas'),
+        centerTitle: true,
+        backgroundColor: Color.fromRGBO(193, 216, 47, 0.8),
+        title: new Text('Políticas', style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontFamily:'Gill', fontSize: 25, color: Color.fromRGBO(14, 123, 55, 99.0))),
+        shape: ContinuousRectangleBorder(
+            borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(200), bottomRight: Radius.circular(10)
+            )
+        ),
       ),
       body: Center(
         child: Scrollbar(
@@ -66,19 +74,25 @@ class _LoginPageState extends State<Politicas> {
                       children: <Widget>[
                       // new Column(
                         new ListTile(
-                          title: new Text (textInicial, textAlign: TextAlign.justify, style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold )),
+                          title: new Text (textInicial, textAlign: TextAlign.justify, style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold, fontFamily: 'Gill')),
                         ),
                         new ListTile(
-                          title: new Text (texto10, textAlign: TextAlign.justify),
+                          title: new Text (texto10, textAlign: TextAlign.justify, style: TextStyle(color: Colors.black, fontSize: 15, fontFamily: 'Gill')),
                         ),
                         new ListTile(
-                          title: new Text (textFinal, textAlign: TextAlign.justify, style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold )),
+                          title: new Text (textFinal, textAlign: TextAlign.justify, style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontFamily: 'Gill' )),
+                        ),
+                        SizedBox(
+                          height: 20,
                         ),
                         MaterialButton(
                           minWidth: 200.0,
                           height: 50.0,
                           color: Colors.green,
-                          child: Text('Continuar', style: TextStyle(color: Colors.white)),
+                          child: Text('Continuar', style: TextStyle(color: Colors.white, fontFamily: 'Gill')),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: new BorderRadius.circular(25.0),
+                              side: BorderSide(color: Color.fromRGBO(66, 172, 53, 50))),
                           onPressed:  (){
                             vecesPulsado = 1;
                             Navigator.pop(
@@ -86,6 +100,9 @@ class _LoginPageState extends State<Politicas> {
                                 MaterialPageRoute(builder: (context) => FormDeAlta() )
                             );
                           },
+                        ),
+                        SizedBox(
+                          height: 20,
                         ),
                     ],
                   // ),

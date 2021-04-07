@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cempro_gps/constantes/url_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
@@ -16,10 +17,16 @@ class _HomePasswordPage extends State<PasswordPage> {
   final TextEditingController user = TextEditingController();
 
   Future<String> savePassword(String usuario, String newPassword) async {
-    String url = 'http://18.189.26.76:8000/api/cambiarclave';
+    // String url = 'http://18.189.26.76:8000/api/cambiarclave';
     Map datos = {"name": usuario, "nuevaclve": newPassword};
 
-    var respuesta = await post(url, body: datos);
+    var respuesta = await post(
+        URL_BASE + 'cambiarclave',
+        headers: {
+          "Accept": "application/json",
+          "APP-KEY": APP_KEY,
+          "APP-SECRET": APP_SECRET
+        }, body: datos);
     // print(respuesta.body);
     var map = jsonDecode(respuesta.body);
     var mensaje = map['mensaje'];
@@ -48,8 +55,9 @@ class _HomePasswordPage extends State<PasswordPage> {
   @override
   Widget build(BuildContext context) => new Scaffold(
       appBar: new AppBar(
-        title: Text('Cambiar Clave'),
-        backgroundColor: Colors.lightGreen,
+        centerTitle: true,
+        title: Text('Cambiar clave', style: TextStyle(fontFamily:'Gill', fontSize: 25, color: Color.fromRGBO(14, 123, 55, 99.0))),
+        backgroundColor: Color.fromRGBO(193, 216, 47, 0.8),
         shape: ContinuousRectangleBorder(
             borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(200),
@@ -77,16 +85,18 @@ class _HomePasswordPage extends State<PasswordPage> {
                           TextField(
                             decoration: InputDecoration(
                                 prefixIcon:
-                                    Icon(Icons.person, color: Colors.green),
+                                    Icon(Icons.person, color: Color.fromRGBO(0, 99, 38, 50), size: 30),
                                 labelText: "Usuario",
-                                labelStyle: TextStyle(color: Colors.green),
+                                labelStyle: TextStyle(color: Color.fromRGBO(0, 99, 38, 50)),
                                 enabled: false,
+                                hintStyle: TextStyle(color: Color.fromRGBO(84, 87, 89, 50), fontSize: 15, fontFamily: 'Gill'),
                                 enabledBorder: const OutlineInputBorder(
                                   borderSide: const BorderSide(
                                       color: Colors.grey, width: 0.0),
                                 ),
-                                suffixStyle:
-                                    const TextStyle(color: Colors.green)),
+                                suffixStyle: const TextStyle(color: Color.fromRGBO(0, 99, 38, 50)
+                                    )
+                            ),
                             controller: user,
                           ),
                           SizedBox(
@@ -97,21 +107,23 @@ class _HomePasswordPage extends State<PasswordPage> {
                               decoration: InputDecoration(
                                   hoverColor: Colors.green,
                                   prefixIcon:
-                                      Icon(Icons.lock, color: Colors.green),
+                                      Icon(Icons.lock, color: Color.fromRGBO(0, 99, 38, 50), size: 30),
                                   labelText: 'Clave Nueva',
-                                  labelStyle: TextStyle(color: Colors.green),
-                                  fillColor: Colors.green,
+                                  labelStyle: TextStyle(color: Color.fromRGBO(0, 99, 38, 50)),
+                                  hintStyle: TextStyle(color: Color.fromRGBO(84, 87, 89, 50), fontSize: 15, fontFamily: 'Gill'),
+                                  fillColor: Color.fromRGBO(84, 87, 89, 50),
                                   focusedBorder: UnderlineInputBorder(
                                     borderSide:
-                                        BorderSide(color: Colors.green[800]),
+                                        BorderSide(color: Color.fromRGBO(0, 99, 38, 50)),
                                   ),
                                   helperStyle: TextStyle(
-                                      color: Colors.green, fontSize: 13),
+                                      color: Color.fromRGBO(0, 99, 38, 50), fontSize: 13),
                                   suffixStyle:
-                                      const TextStyle(color: Colors.green)),
+                                      const TextStyle(color: Color.fromRGBO(0, 99, 38, 50))),
                               keyboardType: TextInputType.text,
                               controller: newPass,
-                              cursorColor: Colors.green),
+                              cursorColor: Color.fromRGBO(84, 87, 89, 50)
+                          ),
                           SizedBox(height: 60.0),
                           MaterialButton(
                               height: 50.0,
@@ -129,9 +141,9 @@ class _HomePasswordPage extends State<PasswordPage> {
                               color: Colors.green,
                               disabledElevation: 0,
                               child: Text(
-                                'CAMBIAR CLAVE',
+                                'Cambiar clave',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(color: Colors.white, fontFamily: 'Gill', fontSize: 20),
                               )),
                           SizedBox(height: 40.0),
                         ],
@@ -151,12 +163,12 @@ void _showDialog(context, titulo, contenido) {
     builder: (BuildContext context) {
       // return object of type Dialog
       return AlertDialog(
-        title: new Text(titulo),
-        content: new Text(contenido),
+        title: new Text(titulo, style: TextStyle(fontFamily: 'Gill')),
+        content: new Text(contenido, style: TextStyle(fontFamily: 'Gill')),
         actions: <Widget>[
           // usually buttons at the bottom of the dialog
           new FlatButton(
-            child: new Text("Close"),
+            child: new Text("Close", style: TextStyle(fontFamily: 'Gill')),
             onPressed: () {
               Navigator.of(context).pop();
             },
