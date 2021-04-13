@@ -90,6 +90,7 @@ class _HomePageState extends State<HomePage> {
     IOSInitializationSettings iosInitializationSettings;
     InitializationSettings initializationSettings;
     BackButtonInterceptor.add(myInterceptor);
+    HttpOverrides.global = new MyHttpOverrides();
   }
   bool myInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
     // _salirAPP(context);

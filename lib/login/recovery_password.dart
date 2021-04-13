@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cempro_gps/constantes/url_helper.dart';
 import 'package:flutter/material.dart';
@@ -50,6 +51,7 @@ class _HomePasswordPage extends State<PasswordPage> {
     // TODO: implement initState
     super.initState();
     user.text = widget.usuario;
+    HttpOverrides.global = new MyHttpOverrides();
   }
 
   @override

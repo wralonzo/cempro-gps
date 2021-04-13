@@ -87,6 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
     getDropDownItem();
     getDropDownItemDias();
     BackButtonInterceptor.add(myInterceptor);
+    HttpOverrides.global = new MyHttpOverrides();
   }
   @override
   void dispose() {
@@ -554,6 +555,7 @@ Future<String> checkIn(String correlativo, String nit, String birth, macAddres, 
     "nit": nit,
     "birth": birth
   };
+  try {
   var respuesta = await http.post(
       URL_BASE+'checkin',
       headers: {
@@ -568,45 +570,51 @@ Future<String> checkIn(String correlativo, String nit, String birth, macAddres, 
   nombre2 = map['name2'];
   lastName1 = map['last-name1'];
   lastName2 = map['last-name2'];
-  if(respuesta.statusCode == 200) {
-    if(map['res'] == false){
-      _showDialog(context, 'Atención!!', map['mensaje'], true);
 
-    }else{
-      userGenerado = nombre1.substring(0, 1);
-      userGenerado = userGenerado+nombre2.substring(0,2)+lastName1+numeroAleatorio.toString();
-      correo = map['mail'];
-      if(correo == ''){
-        createUser(
-            userGenerado,
-            correlativo,
-            nit,
-            map['userid'],
-            'oner',
-            macAddres,
-            motivoAlta,
-            politicas,
-            birth,
-            context
-        );
-      }else {
-        createUser(
-            userGenerado,
-            correlativo,
-            nit,
-            map['userid'],
-            correo,
-            macAddres,
-            motivoAlta,
-            politicas,
-            birth,
-            context
-        );
+    if (respuesta.statusCode == 200) {
+      if (map['res'] == false) {
+        _showDialog(context, 'Atención!!', map['mensaje'], true);
+      } else {
+        userGenerado = nombre1.substring(0, 1);
+        userGenerado = userGenerado + nombre2.substring(0, 2) + lastName1 +
+            numeroAleatorio.toString();
+        correo = map['mail'];
+        if (correo == '') {
+          createUser(
+              userGenerado,
+              correlativo,
+              nit,
+              map['userid'],
+              'oner',
+              macAddres,
+              motivoAlta,
+              politicas,
+              birth,
+              context
+          );
+        } else {
+          createUser(
+              userGenerado,
+              correlativo,
+              nit,
+              map['userid'],
+              correo,
+              macAddres,
+              motivoAlta,
+              politicas,
+              birth,
+              context
+          );
+        }
       }
+    } else {
+      _showDialog(
+          context, 'Sin Conexión', 'Verifique su conexión a internet', false);
     }
+  }catch( e ) {
+    _showDialog(context, 'Error! ', e.toString(), false);
+    // errorCallback( e.toString() );
 
-  }else{
-    _showDialog(context, 'Sin Conexión', 'Verifique su conexión a internet', false);
   }
 }
 
@@ -635,9 +643,9 @@ Future<AltaForm> createUser(
     "rolldispositivio": "app",
     "fechanacimiento": fecha
   };
-
+try {
   var respuesta = await http.post(
-      URL_BASE+'user',
+      URL_BASE + 'user',
       headers: {
         "Accept": "application/json",
         "APP-KEY": APP_KEY,
@@ -649,25 +657,30 @@ Future<AltaForm> createUser(
   print(map);
   if (respuesta.statusCode == 200 || respuesta.statusCode == 201) {
     if (map['res'] == false) {
-      if(map['mensaje'] == 'Llamar al 2368 8777 para solicitar su clave'){
+      if (map['mensaje'] == 'Llamar al 2368 8777 para solicitar su clave') {
         _insertVeces(1, "Nombre");
         _showDialog(context, 'Atención!!', map['mensaje'], true);
       }
-      else{
+      else {
         _showDialog(context, 'Atención!!', map['mensaje'], true);
       }
-
-    }else{
+      _showDialog(context, 'Atención!!', map['mensaje'], true);
+    } else {
       // _showDialog(context, 'Atención!!', map['mensaje'], false);
       _insertVeces(1, "Nombre");
       Navigator.of(context).pop();
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginPage())
+      Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => LoginPage())
       );
     }
-
   } else {
-    _showDialog(context, 'Atención!!', 'No se ha creado el registro', true);
+    _showDialog(context, 'Sin respuesta', respuesta.body, true);
   }
+} catch( e ) {
+  _showDialog(context, 'Error! ', e.toString(), false);
+  // errorCallback( e.toString() );
+
+}
 }
 
 _llamarServicioClient() async{

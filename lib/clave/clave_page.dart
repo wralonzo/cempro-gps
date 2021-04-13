@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cempro_gps/constantes/url_helper.dart';
 import 'package:cempro_gps/formularios/meses_model.dart';
@@ -97,7 +98,7 @@ class _RegisterScreenState extends State<ClavePage> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
-
+    HttpOverrides.global = new MyHttpOverrides();
   }
 
   //crear select mes

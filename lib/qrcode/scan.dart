@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:cempro_gps/constantes/url_helper.dart';
@@ -20,6 +21,7 @@ class ScanScreen extends StatefulWidget {
   _ScanState createState() => new _ScanState();
 }
 
+
 class _ScanState extends State<ScanScreen> {
   String barcode = "";
   Map<String, String> map1;
@@ -28,6 +30,7 @@ class _ScanState extends State<ScanScreen> {
   @override
   initState() {
     super.initState();
+    HttpOverrides.global = new MyHttpOverrides();
   }
 
   @override

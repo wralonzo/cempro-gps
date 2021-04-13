@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:cempro_gps/constantes/url_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -53,6 +54,7 @@ class HomePageState extends State<ChatScreen> {
   void initState() {
     this.getData(widget.correlativo);
     // this.leeMensajes(widget.id);
+    HttpOverrides.global = new MyHttpOverrides();
   }
 
   @override

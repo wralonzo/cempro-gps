@@ -38,23 +38,10 @@ dependencies:
 
   barcode_scan: ^1.0.0
   qr_flutter: ^3.1.0
-
-  #Permisos para la aplicacionfflutter packages pub cache clean
   permission_handler: ^5.0.1+1
   url_launcher: ^5.7.10
-#
-#  <key>NSAppTransportSecurity</key>
-#  <key>NSAllowsArbitraryLoads</key>
-#  <true/>
-  #mis librerias para google maps
-#  google_maps_flutter: ^1.0.6
-#  google_maps_flutter:
-#    git:
-#      url: git://github.com/awazgyawali/plugins/
-#      path: packages/google_maps_flutter
-#      ref: 4a106f7a4c91b5627704e9e2717c0326a67f8b24
   geocoder: ^0.2.1
-  location: ^2.3.5
+#  location: ^2.3.5
   geolocator: ^5.1.3
   great_circle_distance: ^1.0.1
   flutter_bloc: ^4.0.0
@@ -148,3 +135,4 @@ flutter:
 
 #Color(0xff123456)
 #para definir un color direfente
+#https://alphacentauri.progreso.com

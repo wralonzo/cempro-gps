@@ -36,6 +36,7 @@ class _MyHomePageState extends State<LoginPage> {
     SystemChrome.setPreferredOrientations(
         [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
     BackButtonInterceptor.add(myInterceptor);
+    HttpOverrides.global = new MyHttpOverrides();
   }
   @override
   void dispose() {
@@ -86,95 +87,110 @@ class _MyHomePageState extends State<LoginPage> {
 
   Future<String> obtenerdatospost(String correlativo, String password, String macAddress) async {
     Map datos = {"correlativo": correlativo, "password": password};
+try {
+  var respuesta = await httpLogin.post(URL_BASE + 'login',
+      headers: {
+        "Accept": "application/json",
+        "APP-KEY": APP_KEY,
+        "APP-SECRET": APP_SECRET
+      },
+      body: datos);
+  print(respuesta.body);
+  if (respuesta.statusCode == 200) {
+    var map = jsonDecode(respuesta.body);
 
-    var respuesta = await httpLogin.post(URL_BASE + 'login',
-        headers: {
-          "Accept": "application/json",
-          "APP-KEY": APP_KEY,
-          "APP-SECRET": APP_SECRET
-        },
-        body: datos);
-
-    if (respuesta.statusCode == 200) {
-      var map = jsonDecode(respuesta.body);
-
-      if (map.length == 2) {
-        _btnController.error();
-        _showDialog(context, 'Atención! ', map['mensaje']);
-      } else {
-        //definir los permisos;
-        Timer(Duration(seconds: 3), () {
-          _btnController.success();
-        });
-        var _GPS = jsonDecode(await obtenerPermiso(correlativo, 'Marcaje GPS'));
-        var _MARCAJEQR = jsonDecode(await obtenerPermiso(correlativo, 'Marcaje QR'));
-        var _MARCAJECARNE = jsonDecode(await obtenerPermiso(correlativo, 'Marcaje Carné'));
-        var _MENSAJES = jsonDecode(await obtenerPermiso(correlativo, 'Mensajes'));
-        var _CAMBIARCLAVE = jsonDecode(await obtenerPermiso(correlativo, 'Cambiar clave'));
-        var _CERRARSESION = jsonDecode(await obtenerPermiso(correlativo, 'Cerrar sesión'));
-        var _ODH = jsonDecode(await obtenerPermiso(correlativo, 'Servicios ODH'));
-        var _EVENTOQR = jsonDecode(await obtenerPermiso(correlativo, 'Creación evento QR'));
-        var _SAP = jsonDecode(await obtenerPermiso(correlativo, 'SAP Concur'));
-        var _NEXO = jsonDecode(await obtenerPermiso(correlativo, 'Nexo'));
-        String permisoGPS = _GPS['estado'];
-        String permisoQR = _MARCAJEQR['estado'];
-        String permisoCARNE = _MARCAJECARNE['estado'];
-        String permisoMSJ = _MENSAJES['estado'];
-        String permisoCLAVE = _CAMBIARCLAVE['estado'];
-        // String permisoSES = _CERRARSESION['estado'];
-        String permisoODH = _ODH['estado'];
-        String permisoEQR = _EVENTOQR['estado'];
-        String permisoSAP = _SAP['estado'];
-        String permisoNEXO = _NEXO['estado'];
-
-        String permisoODHURL = _ODH['link'];
-        String permisoNEXOURL = _NEXO['link'];
-        String permisoSAPUL = _SAP['link'];
-        //
-        if (correlativo == map[0]['correlativo'] &&
-            password != '' &&
-            map[0]['rolldispositivio'] == 'app' &&
-            macAddress == map[0]['macaddress'] &&
-            map[0]['estado'] == "Activo") {
-          Navigator.of(context).pop();
-          Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => HomePage(
-                        map[0]['name2'] +
-                            ' ' +
-                            map[0]['last-name1'], // Eje: Pedro blanco
-                        map[0]['id'],
-                        map[0]['correlativo'], //Eje: 2324
-                        map[0]['rolldispositivio'], //eje: app o web
-                        map[0]['name'],
-                        permisoGPS,
-                        permisoQR,
-                        permisoCARNE,
-                        permisoMSJ,
-                        permisoCLAVE,
-                        // permisoSES,
-                        permisoODH,
-                        permisoEQR,
-                        permisoSAP,
-                        permisoNEXO,
-
-                        permisoODHURL,
-                        permisoNEXOURL,
-                        permisoSAPUL,
-                        )),
-          );
-        } //fin if de validar usuario
-        else {
-          _btnController.error();
-          _showDialog(context, 'Atención! ',
-              'Tu rol no existe contacta servicio al cliente.');
-        }
-      }
-    } else {
+    if (map.length == 2) {
       _btnController.error();
-      _showDialog(context, 'Error! ', 'Revise su Disponibilidad de Internet');
+      _showDialog(context, 'Atención! ', map['mensaje']);
+    } else {
+      //definir los permisos;
+      Timer(Duration(seconds: 3), () {
+        _btnController.success();
+      });
+      var _GPS = jsonDecode(await obtenerPermiso(correlativo, 'Marcaje GPS'));
+      var _MARCAJEQR = jsonDecode(
+          await obtenerPermiso(correlativo, 'Marcaje QR'));
+      var _MARCAJECARNE = jsonDecode(
+          await obtenerPermiso(correlativo, 'Marcaje Carné'));
+      var _MENSAJES = jsonDecode(await obtenerPermiso(correlativo, 'Mensajes'));
+      var _CAMBIARCLAVE = jsonDecode(
+          await obtenerPermiso(correlativo, 'Cambiar clave'));
+      var _CERRARSESION = jsonDecode(
+          await obtenerPermiso(correlativo, 'Cerrar sesión'));
+      var _ODH = jsonDecode(await obtenerPermiso(correlativo, 'Servicios ODH'));
+      var _EVENTOQR = jsonDecode(
+          await obtenerPermiso(correlativo, 'Creación evento QR'));
+      var _SAP = jsonDecode(await obtenerPermiso(correlativo, 'SAP Concur'));
+      var _NEXO = jsonDecode(await obtenerPermiso(correlativo, 'Nexo'));
+      String permisoGPS = _GPS['estado'];
+      String permisoQR = _MARCAJEQR['estado'];
+      String permisoCARNE = _MARCAJECARNE['estado'];
+      String permisoMSJ = _MENSAJES['estado'];
+      String permisoCLAVE = _CAMBIARCLAVE['estado'];
+      // String permisoSES = _CERRARSESION['estado'];
+      String permisoODH = _ODH['estado'];
+      String permisoEQR = _EVENTOQR['estado'];
+      String permisoSAP = _SAP['estado'];
+      String permisoNEXO = _NEXO['estado'];
+
+      String permisoODHURL = _ODH['link'];
+      String permisoNEXOURL = _NEXO['link'];
+      String permisoSAPUL = _SAP['link'];
+      //
+      if (correlativo == map[0]['correlativo'] &&
+          password != '' &&
+          map[0]['rolldispositivio'] == 'app' &&
+          macAddress == map[0]['macaddress'] &&
+          map[0]['estado'] == "Activo") {
+        Navigator.of(context).pop();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  HomePage(
+                    map[0]['name2'] +
+                        ' ' +
+                        map[0]['last-name1'],
+                    // Eje: Pedro blanco
+                    map[0]['id'],
+                    map[0]['correlativo'],
+                    //Eje: 2324
+                    map[0]['rolldispositivio'],
+                    //eje: app o web
+                    map[0]['name'],
+                    permisoGPS,
+                    permisoQR,
+                    permisoCARNE,
+                    permisoMSJ,
+                    permisoCLAVE,
+                    // permisoSES,
+                    permisoODH,
+                    permisoEQR,
+                    permisoSAP,
+                    permisoNEXO,
+
+                    permisoODHURL,
+                    permisoNEXOURL,
+                    permisoSAPUL,
+                  )),
+        );
+      } //fin if de validar usuario
+      else {
+        _btnController.error();
+        _showDialog(context, 'Atención! ',
+            'Tu rol no existe contacta servicio al cliente.');
+      }
     }
+  } else {
+    _btnController.error();
+    _showDialog(context, 'Error! ', 'Revise su Disponibilidad de Internet');
+  }
+  _showDialog(context, 'Error! ', respuesta.body);
+}on SocketException catch( e ) {
+  _showDialog(context, 'Error! ', e.toString());
+  // errorCallback( e.toString() );
+
+}
   }
 
   void _showDialog(context, titulo, contenido) {
@@ -361,6 +377,7 @@ class _MyHomePageState extends State<LoginPage> {
                   onPressed: () {
                     if (_correlativo.text != '' && _clave.text != '') {
                       obtenerdatospost(_correlativo.text, _clave.text, _getMacAddress);
+                      // print(_getMacAddress);
 
                     } else {
                       _btnController.error();

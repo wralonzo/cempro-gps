@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cempro_gps/constantes/url_helper.dart';
 import 'package:cempro_gps/qrcode/scan.dart';
@@ -35,6 +36,7 @@ class _MapState extends State<MapaPage> {
     super.initState();
     _getUserLocation();
     _getLocationHere();
+    HttpOverrides.global = new MyHttpOverrides();
   }
 
   void _getLocationHere() async {

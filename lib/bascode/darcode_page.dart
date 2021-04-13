@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:cempro_gps/constantes/url_helper.dart';
@@ -36,6 +37,7 @@ class _ScanState extends State<BarcodePage> {
   initState() {
     super.initState();
     _getLocationHereCodeBar();
+    HttpOverrides.global = new MyHttpOverrides();
   }
 
   @override
