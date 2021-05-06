@@ -122,7 +122,7 @@ class _ScanState extends State<ScanScreen> {
                             valueMap['Longitud'].toString(),
                             widget.Correlativo,
                             widget.idUsuario.toString(),
-                            "QR",
+                            "Marcajeqr",
                             valueMap['nombreqr'],
                             widget.usuario,
                             context);
@@ -196,15 +196,17 @@ Future<String> guardarMarcaje(
   Map datos = {
     // "id_log_reloj": id_log,
     "carnet": correlativo,
-    "reloj": reloj,
-    "status": 'Activo',
+    "reloj": "DI01",
+    "status": 'PEN',
     "fecha": fecha,
+    "create_at": fecha + " " + reloj,
     "tipo_marcaje": tipoMarcaje,
     "longitud": longitud,
     "latitud": latitud,
     "iduser": idUsuario,
     "nombreqr": nombreqr,
-    "name": usuario
+    "name": usuario,
+    "nombre_marcaje": "QR"
   };
 
   var respuesta = await post(URL_BASE + 'logmarcajesgral',
@@ -224,7 +226,7 @@ Future<String> guardarMarcaje(
     _showDialog(context, 'Información del Marcaje', mensaje);
   } else {
     _showDialog(context, 'Error!',
-        "No se completo el registro verifique su conexión a internet, puede estar fuera del rango de marcaje");
+        "Fuera del rango de marcaje");
   }
 }
 

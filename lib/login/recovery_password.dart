@@ -42,7 +42,7 @@ class _HomePasswordPage extends State<PasswordPage> {
         _showDialog(context, "Clave Actualizada!", mensaje);
       }
     } else {
-      _showDialog(context, "Error!", "Verifique acceso a internet");
+      _showDialog(context, "Error!", "Sin conexión al servidor de marcaciones");
     }
   }
 

@@ -56,14 +56,14 @@ class _MapState extends State<MapaPage> {
         .placemarkFromCoordinates(position.latitude, position.longitude);
     setState(() {
       _initialPosition = LatLng(position.latitude, position.longitude);
-      print('${placemark[0].name}');
+      // print('${placemark[0].name}');
     });
   }
 
   _onMapCreated(GoogleMapController controller) {
     setState(() {
       controller1.complete(controller);
-      _getLocationHere();
+      _getUserLocation();
     });
   }
 
@@ -191,14 +191,15 @@ class _MapState extends State<MapaPage> {
                         onPressed: () async {
                           setState(() {
                             _getLocationHere();
-                            // _showDialog(context, "MARCAJE", "Entrada guardada Exitosamente");
+                            _getUserLocation();
                             guardarMarcaje(
                                 positionHere.latitude.toString(),
                                 positionHere.longitude.toString(),
                                 widget.Correlativo,
                                 widget.idUsuario.toString(),
-                                "Entrada",
+                                "P10",
                                 widget.usuario,
+                                "Entrada",
                                 context);
                           });
                           // print(positionHere.latitude);
@@ -226,44 +227,42 @@ class _MapState extends State<MapaPage> {
                 Align(
                     // mainAxisAlignment: MainAxisAlignment.end,
                     child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-
-                  // margin: EdgeInsets.symmetric(vertical: 350.0),
-                  // child: Column(
-                  children: <Widget>[
-                    RaisedButton(
-                      onPressed: () async {
-                        setState(() {
-                          _getLocationHere();
-                          guardarMarcaje(
-                              positionHere.latitude.toString(),
-                              positionHere.longitude.toString(),
-                              widget.Correlativo,
-                              widget.idUsuario.toString(),
-                              "Salida",
-                              widget.usuario,
-                              context);
-                        });
-                        // _showDialog(context, "MARCAJE", "Sálida guardada Exitosamente");
-                      },
-                      textColor: Colors.white,
-                      padding: const EdgeInsets.all(0.0),
-                      child: Container(
-                        height: 50,
-                        width: 200,
-                        // color: Colors.green,
-                        padding: const EdgeInsets.all(15.0),
-                        child: Text("Marcar Salida",
-                            style: TextStyle(fontSize: 15, fontFamily: 'Gill' ),
-                            textAlign: TextAlign.center),
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      RaisedButton(
+                        onPressed: () async {
+                          setState(() {
+                            _getLocationHere();
+                            guardarMarcaje(
+                                positionHere.latitude.toString(),
+                                positionHere.longitude.toString(),
+                                widget.Correlativo,
+                                widget.idUsuario.toString(),
+                                "P20",
+                                widget.usuario,
+                                "Salida",
+                                context);
+                          });
+                          // _showDialog(context, "MARCAJE", "Sálida guardada Exitosamente");
+                        },
+                        textColor: Colors.white,
+                        padding: const EdgeInsets.all(0.0),
+                        child: Container(
+                          height: 50,
+                          width: 200,
+                          // color: Colors.green,
+                          padding: const EdgeInsets.all(15.0),
+                          child: Text("Marcar Salida",
+                              style: TextStyle(fontSize: 15, fontFamily: 'Gill' ),
+                              textAlign: TextAlign.center),
+                        ),
+                        color: Colors.red,
+                        // shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: new BorderRadius.circular(25.0),
+                            side: BorderSide(color: Colors.green)),
                       ),
-                      color: Colors.red,
-                      // shape: RoundedRectangleBorder(borderRadius: new BorderRadius.circular(10.0)),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(25.0),
-                          side: BorderSide(color: Colors.green)),
-                    ),
-                  ],
+                    ],
                 )),
               ]),
             ),
@@ -300,9 +299,9 @@ Future<String> guardarMarcaje(
     String correlativo,
     String idUsuario,
     String tipoMarcaje,
-    usuario,
+    String usuario,
+    String nombreMarcaje,
     context) async {
-  // String urlMarcajes = 'http://18.189.26.76:8000/api/logmarcajesgral';
   DateTime now = DateTime.now();
   var formatter = new DateFormat("yyyy-MM-dd");
   String fecha = formatter.format(now);
@@ -311,40 +310,49 @@ Future<String> guardarMarcaje(
       now.minute.toString() +
       ":" +
       now.second.toString();
-
   Map datos = {
     // "id_log_reloj": id_log,
     "carnet": correlativo,
-    "reloj": reloj,
-    "status": 'Activo',
+    "reloj": 'DI01',
+    "status": 'PEN',
     "fecha": fecha,
+    "create_at": fecha + " " +reloj,
     "tipo_marcaje": tipoMarcaje,
     "longitud": longitud,
     "latitud": latitud,
     "iduser": idUsuario,
-    "name": usuario
+    "name": usuario,
+    "nombre_marcaje": nombreMarcaje
   };
-
-  var respuesta = await httpMarcajes.post(URL_BASE + 'logmarcajesgral',
-      headers: {
-        "Accept": "application/json",
-        "APP-KEY": APP_KEY,
-        "APP-SECRET": APP_SECRET
-      },
-      body: datos);
-  var map = jsonDecode(respuesta.body);
-  var mensaje = map['mensaje'];
-  // print(mensaje);
-  // print(respuesta.statusCode);
-  if (respuesta.statusCode == 201) {
-    if (mensaje == null) {
-      _showDialog(context, 'Muy Bien!', "Se completo con éxito el marcaje");
+  try {
+    var respuesta = await httpMarcajes.post(URL_BASE + 'logmarcajesgral',
+        headers: {
+          "Accept": "application/json",
+          "APP-KEY": APP_KEY,
+          "APP-SECRET": APP_SECRET
+        },
+        body: datos);
+    var map = jsonDecode(respuesta.body);
+    if (respuesta.statusCode == 201) {
+      var mensaje = map['mensaje'];
+      if (mensaje == null) {
+        _showDialog(context, 'Muy Bien!', "Se completo con éxito el marcaje");
+      }
+    } else if (respuesta.statusCode == 200) {
+      var mensaje = map['mensaje'];
+      _showDialog(context, 'Información del Marcaje', mensaje);
     }
-  } else if (respuesta.statusCode == 200) {
-    _showDialog(context, 'Información del Marcaje', mensaje);
-  } else {
+    else if (respuesta.statusCode == 500) {
+      var mensaje = map['message'];
+      _showDialog(context, 'Error!', 'Verifique su conexión a datos');
+    }
+    else {
+      _showDialog(context, 'Error!',
+          "Verifique su conexión a datos");
+    }
+  }catch(e){
     _showDialog(context, 'Error!',
-        "No se completo el registro verifique su conexión a internet, puede estar fuera del rango de marcaje");
+        "Verifique su conexión a datos");
   }
 }
 

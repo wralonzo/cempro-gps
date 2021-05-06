@@ -1,9 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:cempro_gps/bascode/darcode_page.dart';
 import 'package:cempro_gps/constantes/url_helper.dart';
-import 'package:cempro_gps/mensajes/mi-complemento.dart';
 import 'package:cempro_gps/login/recovery_password.dart';
 import 'package:cempro_gps/pages/mapa_page.dart';
 import 'package:cempro_gps/login/login_page.dart';
@@ -38,6 +38,8 @@ class HomePage extends StatefulWidget {
   final String urlBUS;
   final String urlNexo;
   final String urlSAP;
+  String mensajesICON;
+  String logoURL;
   HomePage(
       this.usuario,
       this.idUsuario,
@@ -56,7 +58,9 @@ class HomePage extends StatefulWidget {
       this.rolNEXO,
       this.urlBUS,
       this.urlNexo,
-      this.urlSAP
+      this.urlSAP,
+      this.mensajesICON,
+      this.logoURL
   );
   @override
   _HomePageState createState() => _HomePageState();
@@ -65,25 +69,20 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   var data;
   var dataMensajes;
+  String logoUrl = '';
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   AndroidInitializationSettings androidInitializationSettings;
   IOSInitializationSettings iosInitializationSettings;
   InitializationSettings initializationSettings;
-
-  @override
-  void setState(fn) {
-    // TODO: implement setState
-    super.setState(fn);
-    // obtenerPermisos(widget.correlativo);
-  }
+  final TextEditingController _cantidadMensajes = TextEditingController();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    initializing();
     _showNotifications();
+    initializing();
     FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
         FlutterLocalNotificationsPlugin();
     AndroidInitializationSettings androidInitializationSettings;
@@ -91,9 +90,13 @@ class _HomePageState extends State<HomePage> {
     InitializationSettings initializationSettings;
     BackButtonInterceptor.add(myInterceptor);
     HttpOverrides.global = new MyHttpOverrides();
+    const oneSec = const Duration(seconds: 100);
+    Timer.periodic(oneSec, (Timer timer) {
+      _showNotifications();// This statement will be printed after every one second
+    });
   }
+
   bool myInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
-    // _salirAPP(context);
     return true;
   }
   void initializing() async {
@@ -105,7 +108,6 @@ class _HomePageState extends State<HomePage> {
         androidInitializationSettings, iosInitializationSettings);
     await flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onSelectNotification: onSelectNotification);
-    // BackButtonInterceptor.add(myInterceptor);
   }
 
   void _showNotifications() async {
@@ -118,11 +120,12 @@ class _HomePageState extends State<HomePage> {
         },
         body: msjSinLeer);
     dataMensajes = json.decode(responseMensajesSinLeer.body);
-    print(dataMensajes['mens'].runtimeType);
+    // print(dataMensajes['mens'].toString());
+    // setState(() {
+    _cantidadMensajes.text = dataMensajes['mens'].toString();
     if(dataMensajes['mens'] > 0){
       await notification();
     }
-
   }
 
   Future<void> notification() async {
@@ -132,14 +135,13 @@ class _HomePageState extends State<HomePage> {
             priority: Priority.High,
             importance: Importance.Max,
             ticker: 'test');
-
     IOSNotificationDetails iosNotificationDetails = IOSNotificationDetails();
 
     NotificationDetails notificationDetails =
         NotificationDetails(androidNotificationDetails, iosNotificationDetails);
     await flutterLocalNotificationsPlugin.show(1, 'Hola! ' + widget.usuario,
         'Tienes mensajes nuevos', notificationDetails,
-        payload: "Jp;a");
+        payload: "Mensajes");
   }
 
   Future onSelectNotification(String payLoad) async {
@@ -163,13 +165,13 @@ class _HomePageState extends State<HomePage> {
           body: msjSinLeer);
       dataMensajes = json.decode(responseMensajesSinLeer.body);
       data = json.decode(response.body);
-
       if(response.statusCode == 200){
         data = json.decode(response.body);
         int numeroMensajes = data.length;
         if(dataMensajes['mens'] > 0){
-          // await notification();
-          _showDialogMensajes(context, 'Mensaje Nuevo', data[numeroMensajes-1]['descripcion'], data[numeroMensajes-1]['id']);
+          _showDialogMensajes(context, ' Mensajes Nuevos', data[numeroMensajes-1]['descripcion'], data[numeroMensajes-1]['id']);
+          _cantidadMensajes.text = dataMensajes['mens'].toString();
+          // print(dataMensajes['mens'].toString());
         }
 
       }
@@ -218,6 +220,7 @@ class _HomePageState extends State<HomePage> {
             new FlatButton(
               child: new Text("Ver Mensajes", style: TextStyle(fontFamily: 'Gill')),
               onPressed: () {
+                _cantidadMensajes.text = '0';
                 leeMensajes(idmensaje);
                 Navigator.of(context).pop();
                 Navigator.push(
@@ -235,6 +238,7 @@ class _HomePageState extends State<HomePage> {
 
   Future onDidReceiveLocalNotification(
       int id, String title, String body, String payload) async {
+    // print('jajaj');
     return CupertinoAlertDialog(
       title: Text(title),
       content: Text(body),
@@ -242,7 +246,6 @@ class _HomePageState extends State<HomePage> {
         CupertinoDialogAction(
             isDefaultAction: true,
             onPressed: () {
-              print("Hola desde la notificacion");
             },
             child: Text("Okay")),
       ],
@@ -259,20 +262,49 @@ class _HomePageState extends State<HomePage> {
             gravity: ToastGravity.BOTTOM,
             timeInSecForIos: 1,
           );
-
           return false;
         },
         child: Scaffold(
           appBar: new AppBar(
             backgroundColor: Color.fromRGBO(193, 216, 47, 0.8),
+            // leading: Image.asset('assets/candado.png'),
             automaticallyImplyLeading: false,
             centerTitle: true,
-            title: new Text(widget.usuario,
-                style: TextStyle(
-                    // fontWeight: FontWeight.bold,
-                    fontFamily: 'Gill',
-                    fontSize: 25,
-                    color: Color.fromRGBO(14, 123, 55, 99.0))),
+            title: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (widget.rolPASS == 'Activo')
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  PasswordPage(widget.nombre)),
+                        );
+                      }, // Handle your callback.
+                      splashColor: Colors.brown.withOpacity(0.5),
+                      child: Ink(
+                        height: 60,
+                        width: 60,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage('assets/candado.png'),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    ),
+                  Text(widget.usuario,
+                      style: TextStyle(
+                          // fontWeight: FontWeight.bold,
+                          fontFamily: 'Gill',
+                          fontSize: 25,
+                          color: Color.fromRGBO(14, 123, 55, 99.0))),
+                ],
+              ),
+            ),
             actions: [
               // if( widget.rolSES == true)
               IconButton(
@@ -299,32 +331,28 @@ class _HomePageState extends State<HomePage> {
               child: Center(
                   // alignment: Alignment.center,/
                   child: new Container(
-            child: Column(
-              children: <Widget>[
-                SizedBox(height: 10),
-                Center(
-                  child: Column(
-                    // mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
+                    child: Column(
+                      children: <Widget>[
+                        SizedBox(height: 5),
+                        Center(
+                          child: Column(
+                            // mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
                       // SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset("assets/progreso.png",
-                              width: 50, height: 50, fit: BoxFit.fill),
-                          Text('  Progreso',
-                              style: TextStyle(
-                                  fontSize: 40, fontFamily:'Gotan', color: Color.fromRGBO(84, 87, 89, 1.0),fontWeight: FontWeight.bold))
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.network(URL_LOGO+widget.logoURL,
+                                      width: 150, height: 150, fit: BoxFit.cover),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                 // SizedBox(height: 10),
-                SizedBox(
-                  height: 10,
-                ),
-                SizedBox(height: 10),
+                    SizedBox(
+                      height: 5,
+                    ),
                 Center(
                   child: Column(
                     children: [
@@ -359,6 +387,7 @@ class _HomePageState extends State<HomePage> {
                           if (widget.rolQR == 'Activo')
                             InkWell(
                               onTap: () {
+                                // print(_cantidadMensajes.text);
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -439,6 +468,7 @@ class _HomePageState extends State<HomePage> {
                           if (widget.rolMSM == 'Activo')
                             InkWell(
                               onTap: () {
+                                _cantidadMensajes.text = '0';
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -448,6 +478,44 @@ class _HomePageState extends State<HomePage> {
                               }, // Handle your callback.
                               splashColor: Colors.brown.withOpacity(0.5),
                               child: Ink(
+                                child: new Stack(
+                                  children: <Widget>[
+                                    SizedBox(height: 50),
+                                       Positioned(
+                                        // height: ,
+                                        bottom: 46,
+                                        right: 43,
+                                        child: new Container(
+                                          padding: EdgeInsets.all(2),
+                                          decoration: new BoxDecoration(
+                                            color: Colors.red,
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          constraints: BoxConstraints(
+                                            minWidth: 2,
+                                            minHeight: 2,
+                                          ),
+                                          child: Container(
+                                              // margin: EdgeInsets.all(12),
+                                              padding: EdgeInsets.all(0),
+                                            // alignment: AlignmentGeometry.,
+                                            height: 25,
+                                            width: 25,
+                                            child: TextField(
+                                                style: TextStyle(color: Colors.white, fontSize: 15, fontFamily: 'Gill'),
+                                                textAlign: TextAlign.center,
+                                                readOnly: false,
+                                                enabled: false,
+                                                controller: _cantidadMensajes,
+                                                onChanged: (text) {
+                                                  text = _cantidadMensajes.text;
+                                                },
+                                              )
+                                          ),
+                                          ),
+                                        )
+                                  ],
+                                ),
                                 height: 100,
                                 width: 160,
                                 decoration: BoxDecoration(
@@ -490,28 +558,7 @@ class _HomePageState extends State<HomePage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          if (widget.rolPASS == 'Activo')
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          PasswordPage(widget.nombre)),
-                                );
-                              }, // Handle your callback.
-                              splashColor: Colors.brown.withOpacity(0.5),
-                              child: Ink(
-                                height: 100,
-                                width: 168,
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image: AssetImage('assets/clave.png'),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                            ),
+
                           if (widget.rolEVENT == 'Activo')
                             InkWell(
                               onTap: () {
@@ -533,21 +580,40 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             ),
+                          if( widget.rolNEXO == 'Activo')
+                            InkWell(
+                              onTap: () {
+                                _launchURL(widget.urlNexo);
+                              }, // Handle your callback.
+                              splashColor: Colors.brown.withOpacity(
+                                  0.5),
+                              child: Ink(
+                                height: 100,
+                                width: 165,
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                    image: AssetImage(
+                                        'assets/nexo.png'),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                       SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          if (widget.rolPASS == 'Activo')
-                            Text('Cambiar Clave  ',
+                          if (widget.rolEVENT == 'Activo')
+                            Text('Evento QR  ',
                                 style: TextStyle(
                                     color: Color.fromRGBO(84, 87, 89, 50),
                                     fontSize: 15,
                                     fontFamily: 'Gill',
                                      )),
-                          if (widget.rolEVENT == 'Activo')
-                            Text('Evento QR  ',
+                          if (widget.rolNEXO == 'Activo')
+                            Text('Nexo',
                                 style: TextStyle(
                                     color: Color.fromRGBO(84, 87, 89, 50),
                                     fontSize: 15,
@@ -626,32 +692,15 @@ class _HomePageState extends State<HomePage> {
                     // ],
                     ),
                 SizedBox(height: 15),
-                Center(
+                Center
+                  (
                   child: Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          if( widget.rolNEXO == 'Activo')
-                            InkWell(
-                              onTap: () {
-                                _launchURL(widget.urlNexo);
-                              }, // Handle your callback.
-                              splashColor: Colors.brown.withOpacity(
-                                  0.5),
-                              child: Ink(
-                                height: 100,
-                                width: 165,
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                    image: AssetImage(
-                                        'assets/nexo.png'),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          if( widget.rolODH == 'Activo')
+
+                          // if( widget.rolODH == 'Activo')
                             InkWell(
                               onTap: () {
                                 _launchURL('tel:+502 23688777');
@@ -672,18 +721,12 @@ class _HomePageState extends State<HomePage> {
                             ),
                         ],
                       ),
-
+                      SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          if( widget.rolNEXO == 'Activo')
-                            Text('Nexo', style: TextStyle(
-                                color: Color.fromRGBO(84, 87, 89, 50),
-                                fontSize: 15,
-                                fontFamily: 'Gill')),
-
-                          if( widget.rolODH == 'Activo')
-                            Text('   Call Center', style: TextStyle(
+                          // if( widget.rolODH == 'Activo')
+                            Text('Call Center', style: TextStyle(
                                 color: Color.fromRGBO(84, 87, 89, 50),
                                 fontSize: 15,
                                 fontFamily: 'Gill')),
@@ -693,7 +736,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   // ],
                 ),
-SizedBox(height: 30)
+            SizedBox(height: 30)
               ],
             ),
           ),

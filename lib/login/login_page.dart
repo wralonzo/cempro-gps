@@ -87,6 +87,8 @@ class _MyHomePageState extends State<LoginPage> {
 
   Future<String> obtenerdatospost(String correlativo, String password, String macAddress) async {
     Map datos = {"correlativo": correlativo, "password": password};
+    var mensajesSinLeer;
+    String mensajesNuevo = '';
 try {
   var respuesta = await httpLogin.post(URL_BASE + 'login',
       headers: {
@@ -95,16 +97,46 @@ try {
         "APP-SECRET": APP_SECRET
       },
       body: datos);
-  print(respuesta.body);
+
   if (respuesta.statusCode == 200) {
     var map = jsonDecode(respuesta.body);
+
+    Map msjSinLeer = {"correlativo": correlativo};
+    var responseMensajesSinLeer = await httpLogin.post(URL_BASE + 'mensajesnuevos',
+        headers: {
+          "Accept": "application/json",
+          "APP-KEY": APP_KEY,
+          "APP-SECRET": APP_SECRET
+        },
+        body: msjSinLeer);
+    if(responseMensajesSinLeer.statusCode == 200){
+      mensajesSinLeer = json.decode(responseMensajesSinLeer.body);
+      if(mensajesSinLeer['mens'] > 0){
+        mensajesNuevo = mensajesSinLeer['mens'].toString();
+      }else{
+        mensajesNuevo = mensajesSinLeer['mens'].toString();
+      }
+
+    }
+    var dataLogo;
+    Map datosLogo = {"correlativo": correlativo};
+    var responselogo = await httpLogin.post(URL_BASE + 'logo',
+        headers: {
+          "Accept": "application/json",
+          "APP-KEY": APP_KEY,
+          "APP-SECRET": APP_SECRET
+        },
+        body: datosLogo);
+    if (responselogo.statusCode == 200) {
+      dataLogo = json.decode(responselogo.body);
+    }
 
     if (map.length == 2) {
       _btnController.error();
       _showDialog(context, 'Atención! ', map['mensaje']);
     } else {
       //definir los permisos;
-      Timer(Duration(seconds: 3), () {
+      Timer(Duration(seconds: 1), () {
         _btnController.success();
       });
       var _GPS = jsonDecode(await obtenerPermiso(correlativo, 'Marcaje GPS'));
@@ -172,22 +204,24 @@ try {
                     permisoODHURL,
                     permisoNEXOURL,
                     permisoSAPUL,
+                    mensajesNuevo,
+                    dataLogo.toString()
                   )),
         );
       } //fin if de validar usuario
       else {
         _btnController.error();
         _showDialog(context, 'Atención! ',
-            'Tu rol no existe contacta servicio al cliente.');
+            'Usuario activo en otro dispositivo');
       }
     }
   } else {
     _btnController.error();
-    _showDialog(context, 'Error! ', 'Revise su Disponibilidad de Internet');
+    _showDialog(context, 'Error! ', 'Verifique su conexión a datos');
   }
-  _showDialog(context, 'Error! ', respuesta.body);
+  // _showDialog(context, 'Error! ', respuesta.body);
 }on SocketException catch( e ) {
-  _showDialog(context, 'Error! ', e.toString());
+  _showDialog(context, 'Error! ','Verifique su conexión a datos');
   // errorCallback( e.toString() );
 
 }
@@ -377,8 +411,6 @@ try {
                   onPressed: () {
                     if (_correlativo.text != '' && _clave.text != '') {
                       obtenerdatospost(_correlativo.text, _clave.text, _getMacAddress);
-                      // print(_getMacAddress);
-
                     } else {
                       _btnController.error();
                       _showDialog(

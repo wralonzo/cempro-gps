@@ -77,7 +77,7 @@ class _ScanState extends State<BarcodePage> {
                             positionHere.longitude.toString(),
                             barcode,
                             widget.idUsuario.toString(),
-                            'CODEBAR',
+                            'Marcajecb',
                             "",
                             "",
                             context);
@@ -165,15 +165,17 @@ Future<String> guardarMarcaje(
   Map datos = {
     // "id_log_reloj": id_log,
     "carnet": correlativo,
-    "reloj": reloj,
-    "status": 'Activo',
+    "reloj": "DI01",
+    "status": 'PEN',
     "fecha": fecha,
+    "create_at": fecha + " " + reloj,
     "tipo_marcaje": tipoMarcaje,
     "longitud": longitud,
     "latitud": latitud,
     "iduser": idUsuario,
     "nombreqr": nombreqr,
-    "name": usuario
+    "name": usuario,
+    "nombre_marcaje": "CB"
   };
 
   var respuesta = await post(URL_BASE + 'logmarcajesgral',
@@ -200,7 +202,7 @@ Future<String> guardarMarcaje(
         context, 'Error!', "Ingrese un Carné Válido para realizar el marcaje");
   } else {
     _showDialog(context, 'Error!',
-        "verifique su acceso a internet, puede estar fuera del rango de marcaje");
+        "Fuera del rango de marcaje");
   }
 }
 

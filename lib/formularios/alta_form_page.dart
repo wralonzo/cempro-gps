@@ -504,7 +504,6 @@ void _insertVeces(log_name, nombre) async {
   };
   Login car = Login.fromMap(row);
   final id = await dbHelper.insert(car);
-print("registros ingresados");
   // _showMessageInScaffold('inserted row id: $id');
 }
 
@@ -609,10 +608,10 @@ Future<String> checkIn(String correlativo, String nit, String birth, macAddres, 
       }
     } else {
       _showDialog(
-          context, 'Sin Conexión', 'Verifique su conexión a internet', false);
+          context, 'Error!', 'No se encontraron los datos', false);
     }
   }catch( e ) {
-    _showDialog(context, 'Error! ', e.toString(), false);
+    _showDialog(context, 'Error! ', 'Sin Intenet', false);
     // errorCallback( e.toString() );
 
   }
@@ -654,7 +653,6 @@ try {
       body: datos
   );
   Map<String, dynamic> map = jsonDecode(respuesta.body);
-  print(map);
   if (respuesta.statusCode == 200 || respuesta.statusCode == 201) {
     if (map['res'] == false) {
       if (map['mensaje'] == 'Llamar al 2368 8777 para solicitar su clave') {
@@ -674,10 +672,10 @@ try {
       );
     }
   } else {
-    _showDialog(context, 'Sin respuesta', respuesta.body, true);
+    _showDialog(context, 'Sin respuesta', 'Sin conexión al servidor de marcaciones', true);
   }
 } catch( e ) {
-  _showDialog(context, 'Error! ', e.toString(), false);
+  _showDialog(context, 'Error! ', "Sin conexión al servidor de marcaciones", false);
   // errorCallback( e.toString() );
 
 }
